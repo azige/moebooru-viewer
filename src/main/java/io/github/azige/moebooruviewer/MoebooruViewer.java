@@ -7,10 +7,21 @@ import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.JFrame;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -18,14 +29,38 @@ import javax.swing.JFrame;
  */
 public class MoebooruViewer{
 
-    public static final String KONACHAN_URL = "https://konachan.com";
-    public static final String YANDERE_URL = "https://yande.re";
+    public static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
 
-    private static ExecutorService executorService = Executors.newFixedThreadPool(5);
+    public static final String KONACHAN_URL = "https://konachan.com";
+    public static final String KONACHAN_NAME = "konachan.com";
+
+    public static final String YANDERE_URL = "https://yande.re";
+    public static final String YANDERE_NAME = "yande.re";
+
+    public static final String CACHE_DIR_NAME = KONACHAN_NAME;
+
+    private static final int THREAD_POOL_SIZE = 10;
+
+    private static ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     private static MoebooruAPI mapi = new MoebooruAPI(KONACHAN_URL);
-    private static NetIO netIO = new NetIO(new File("konacha.com"));
+    private static NetIO netIO = new NetIO(new File(CACHE_DIR_NAME));
 
     private static void init(){
+        logger.info("init");
+        File tagFile = new File(CACHE_DIR_NAME, "tags.json");
+        if (tagFile.exists()){
+            ObjectMapper mapper = new ObjectMapper();
+            try{
+                JsonNode root = mapper.readTree(tagFile);
+                List<String> keys = new ArrayList<>();
+                root.fieldNames().forEachRemaining(keys::add);
+                Map<String, Tag> tagMap = keys.stream()
+                    .collect(Collectors.toMap(Function.identity(), key -> mapper.convertValue(root.get(key), Tag.class)));
+                mapi.setTagMap(tagMap);
+            }catch (IOException ex){
+                logger.warn("无法读取tag记录文件", ex);
+            }
+        }
     }
 
     public static Image resizeImage(Image image, double maxWidth, double maxHeight){
@@ -56,7 +91,15 @@ public class MoebooruViewer{
     }
 
     private static void destroy(){
+        logger.info("destroy");
         executorService.shutdownNow();
+        ObjectMapper mapper = new ObjectMapper();
+        File tagFile = new File(CACHE_DIR_NAME, "tags.json");
+        try{
+            mapper.writeValue(tagFile, mapi.getTagMap());
+        }catch (IOException ex){
+            logger.warn("无法读取tag记录文件", ex);
+        }
     }
 
     /**
@@ -89,7 +132,7 @@ public class MoebooruViewer{
             frame.addWindowListener(new WindowAdapter(){
 
                 @Override
-                public void windowClosed(WindowEvent e){
+                public void windowClosing(WindowEvent e){
                     destroy();
                 }
 

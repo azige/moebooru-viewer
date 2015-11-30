@@ -9,12 +9,13 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -33,7 +34,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private static final int SAMPLE_HEIGHT = 100;
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
-    private ShowPostFrame postFrame = new ShowPostFrame();
+    private Map<Post, ShowPostFrame> postFrameMap = new HashMap<>();
     private final JLabel loadMoreLabel;
     private String[] tags;
 
@@ -88,7 +89,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     @Override
     protected void processWindowEvent(WindowEvent e){
         if (e.getID() == WindowEvent.WINDOW_CLOSING){
-            postFrame.dispose();
+            postFrameMap.values().forEach(ShowPostFrame::dispose);
         }
         super.processWindowEvent(e);
     }
@@ -97,8 +98,9 @@ public class ListPostFrame extends javax.swing.JFrame{
         loadMoreLabel.setText("加载中……");
         loadMoreLabel.setEnabled(false);
         MoebooruViewer.execute(() -> {
-            List<Post> postList = MoebooruViewer.getNetIO().retry(() -> MoebooruViewer.getMAPI().listPosts(pageCount++, tags));
+            List<Post> postList = MoebooruViewer.getNetIO().retry(() -> MoebooruViewer.getMAPI().listPosts(pageCount, tags));
             SwingUtilities.invokeLater(() -> {
+                pageCount++;
                 postsPanel.remove(loadMoreLabel);
                 for (Post post : postList){
                     if (posts.contains(post)){
@@ -110,33 +112,51 @@ public class ListPostFrame extends javax.swing.JFrame{
                     label.setHorizontalAlignment(JLabel.CENTER);
                     label.setPreferredSize(new Dimension(SAMPLE_WIDTH, SAMPLE_HEIGHT));
                     label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                    class LoadImageTask implements Runnable{
+
+                        boolean force = false;
+
+                        @Override
+                        public void run(){
+                            Image image = MoebooruViewer.getNetIO().loadPreview(post, force);
+                            SwingUtilities.invokeLater(() -> {
+                                if (image != null){
+                                    label.setText("");
+                                    Dimension size = label.getPreferredSize();
+                                    label.setIcon(new ImageIcon(MoebooruViewer.resizeImage(image, size.getWidth(), size.getHeight())));
+                                }else{
+                                    label.setText("加载失败！");
+                                }
+                            });
+                        }
+
+                    }
+
                     label.addMouseListener(new MouseAdapter(){
 
                         @Override
                         public void mouseClicked(MouseEvent e){
-                            postFrame.showPost(post);
-                            if (!postFrame.isVisible()){
-                                Point location = getLocation();
-                                location.x += getWidth();
-                                postFrame.setLocation(location);
-                                postFrame.setVisible(true);
+                            if (SwingUtilities.isLeftMouseButton(e)){
+                                ShowPostFrame showPostFrame = postFrameMap.get(post);
+                                if (showPostFrame == null){
+                                    showPostFrame = new ShowPostFrame();
+                                    showPostFrame.showPost(post);
+                                }
+                                showPostFrame.setVisible(true);
+                            }else if (SwingUtilities.isRightMouseButton(e)){
+                                label.setIcon(null);
+                                label.setText("加载中……");
+                                LoadImageTask task = new LoadImageTask();
+                                task.force = true;
+                                MoebooruViewer.execute(task);
                             }
                         }
 
                     });
                     postsPanel.add(label);
-                    MoebooruViewer.execute(() -> {
-                        Image image = MoebooruViewer.getNetIO().loadPreview(post);
-                        SwingUtilities.invokeLater(() -> {
-                            if (image != null){
-                                label.setText("");
-                                Dimension size = label.getPreferredSize();
-                                label.setIcon(new ImageIcon(MoebooruViewer.resizeImage(image, size.getWidth(), size.getHeight())));
-                            }else{
-                                label.setText("加载失败！");
-                            }
-                        });
-                    });
+                    LoadImageTask task = new LoadImageTask();
+                    MoebooruViewer.execute(task);
                 }
                 postsPanel.add(loadMoreLabel);
                 loadMoreLabel.setText("加载更多");

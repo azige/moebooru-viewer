@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,6 +29,7 @@ public class MoebooruAPI{
     private static final String TAG_PATH = "/tag.json";
     private static final Logger logger = LoggerFactory.getLogger(MoebooruAPI.class);
 
+    private Map<String, Tag> tagMap = new ConcurrentHashMap<>();
     private String rootUrl;
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -58,14 +62,27 @@ public class MoebooruAPI{
         }
     }
 
+    public Map<String, Tag> getTagMap(){
+        return tagMap;
+    }
+
+    public void setTagMap(Map<String, Tag> tagMap){
+        this.tagMap = tagMap;
+    }
+
     public Tag findTag(String name) throws IOException{
+        Tag tag = tagMap.get(name);
+        if (tag != null){
+            return tag;
+        }
         String parameters = String.format("name=%s", name);
         URL url = new URL(rootUrl + TAG_PATH + "?" + parameters);
         try (InputStream input = MoebooruViewer.getNetIO().openStream(url)){
             JsonNode tags = mapper.readTree(input);
             for (JsonNode tagNode : tags){
-                Tag tag = mapper.convertValue(tagNode, Tag.class);
+                tag = mapper.convertValue(tagNode, Tag.class);
                 if (tag.getName().equals(name)){
+                    tagMap.put(name, tag);
                     return tag;
                 }
             }

@@ -95,6 +95,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
     private void downloadLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadLabelMouseClicked
         postLabel.setIcon(null);
         postLabel.setText("加载中……");
+        image = null;
         MoebooruViewer.execute(() -> {
             image = MoebooruViewer.getNetIO().loadOrigin(presentingPost);
             SwingUtilities.invokeLater(() -> {
@@ -110,6 +111,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
     public void showPost(Post post){
         postLabel.setIcon(null);
         postLabel.setText("加载中……");
+        image = null;
         setTitle("Post[" + post.getId() + "]");
 
         presentingPost = post;
@@ -162,7 +164,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
                 }
             });
         }
-        tagPanel.repaint();
+        repaint();
     }
 
     private void showImage(){

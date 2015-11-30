@@ -16,6 +16,7 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
@@ -44,6 +45,7 @@ public class NetIO{
     public static final String PREVIEW_DIR_NAME = "previews";
     public static final String SAMPLE_DIR_NAME = "samples";
     public static final String ORIGIN_DIR_NAME = "origins";
+    public static final String TAG_DIR_NAME = "tags";
 
     private static final Logger logger = LoggerFactory.getLogger(NetIO.class);
     private int maxRetryCount = 5;
@@ -57,17 +59,11 @@ public class NetIO{
     public NetIO(File cacheDir){
         this.cacheDir = cacheDir;
         previewDir = new File(cacheDir, PREVIEW_DIR_NAME);
-        if (!previewDir.exists()){
-            previewDir.mkdirs();
-        }
         sampleDir = new File(cacheDir, SAMPLE_DIR_NAME);
-        if (!sampleDir.exists()){
-            sampleDir.mkdirs();
-        }
         originDir = new File(cacheDir, ORIGIN_DIR_NAME);
-        if (!originDir.exists()){
-            originDir.mkdirs();
-        }
+        Stream.of(previewDir, sampleDir, originDir)
+            .filter(dir -> !dir.exists())
+            .forEach(File::mkdirs);
     }
 
     public <S> S retry(SupplierThrowsIOException<S> supplier){
@@ -92,45 +88,70 @@ public class NetIO{
         });
     }
 
-    public InputStream openStream(URL url){
-        return retry(() -> {
-            URL u;
-            if (forceHttps){
-                u = new URL(url.toString().replace("http:", "https:"));
-            }else{
-                u = url;
-            }
-            logger.info("downloading: {}", u);
-            URLConnection connection = u.openConnection();
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(30000);
-            return connection.getInputStream();
-        });
+    public InputStream openStream(URL url) throws IOException{
+        URL u;
+        if (forceHttps){
+            u = new URL(url.toString().replace("http:", "https:"));
+        }else{
+            u = url;
+        }
+        logger.info("downloading: {}", u);
+        URLConnection connection = u.openConnection();
+        connection.setConnectTimeout(30000);
+        connection.setReadTimeout(30000);
+        return connection.getInputStream();
     }
 
     public Image loadPreview(Post post){
+        return loadPreview(post, false);
+    }
+
+    public Image loadPreview(Post post, boolean force){
         long id = post.getId();
         File previewFile = new File(previewDir, id + ".jpg");
-        return loadImage(previewFile, post.getPreviewUrl());
+        return loadImage(previewFile, post.getPreviewUrl(), force);
     }
 
     public Image loadSample(Post post){
+        return loadSample(post, false);
+    }
+
+    public Image loadSample(Post post, boolean force){
         long id = post.getId();
         File sampleFile = new File(sampleDir, id + ".jpg");
-        return loadImage(sampleFile, post.getSampleUrl());
+        return loadImage(sampleFile, post.getSampleUrl(), force);
     }
 
     public Image loadOrigin(Post post){
+        return loadOrigin(post, false);
+    }
+
+    public Image loadOrigin(Post post, boolean force){
         try{
             File originFile = new File(originDir, URLDecoder.decode(post.getOriginUrl().replaceFirst(".*/", ""), "UTF-8"));
-            return loadImage(originFile, post.getOriginUrl());
+            return loadImage(originFile, post.getOriginUrl(), force);
         }catch (UnsupportedEncodingException ex){
             logger.error("编码异常", ex);
             return null;
         }
     }
 
-    public Image loadImage(File localFile, String url){
+    public Image loadImage(File localFile, String url, boolean force){
+        if (cacheFile(localFile, url, force)){
+            try{
+                return ImageIO.read(localFile);
+            }catch (IOException ex){
+                logger.warn("读取本地文件出错", ex);
+            }
+        }
+        return null;
+    }
+
+    public boolean cacheFile(File localFile, String url){
+        return cacheFile(localFile, url, false);
+    }
+
+    public boolean cacheFile(File localFile, String url, boolean force){
         Object locker;
         synchronized (fileLockerMap){
             locker = fileLockerMap.get(localFile);
@@ -140,19 +161,22 @@ public class NetIO{
             }
         }
         synchronized (locker){
-            if (!localFile.exists()){
-                retry(() -> {
+            if (!localFile.exists() || force){
+                Object flag = retry(() -> {
                     try (InputStream input = openStream(new URL(url)); OutputStream output = new FileOutputStream(localFile)){
                         IOUtils.copy(input, output);
                         logger.info("downloaded: {}", localFile);
+                        return new Object();
                     }
                 });
-            }
-            try{
-                return ImageIO.read(localFile);
-            }catch (IOException ex){
-                logger.warn("无法打开本地图片", ex);
-                return null;
+                if (flag != null){
+                    return true;
+                }else{
+                    localFile.delete();
+                    return false;
+                }
+            }else{
+                return true;
             }
         }
     }
