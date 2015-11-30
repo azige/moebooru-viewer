@@ -3,17 +3,20 @@
  */
 package io.github.azige.moebooruviewer;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -21,22 +24,49 @@ import javax.swing.SwingUtilities;
  */
 public class ShowPostFrame extends javax.swing.JFrame{
 
-    private Post presentingPost;
-    private Image image;
+    private static final Logger logger = LoggerFactory.getLogger(ShowPostFrame.class);
+    private Map<Long, ShowPostPanel> postPanelMap = new HashMap<>();
 
     /**
      * Creates new form PostFrame
      */
     public ShowPostFrame(){
         initComponents();
-        postLabel.addComponentListener(new ComponentAdapter(){
+        tabbedPane.addChangeListener(new ChangeListener(){
+
+            @Override
+            public void stateChanged(ChangeEvent e){
+                ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
+                if (postPanel != null){
+                    postPanel.updateImage();
+                }
+            }
+        });
+        tabbedPane.addMouseListener(new MouseAdapter(){
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2){
+                    ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
+                    tabbedPane.remove(postPanel);
+                    postPanelMap.values().remove(postPanel);
+                    if (postPanelMap.isEmpty()){
+                        setVisible(false);
+                    }
+                }
+            }
+
+        });
+        rootPane.addComponentListener(new ComponentAdapter(){
 
             @Override
             public void componentResized(ComponentEvent e){
-                if (image != null){
-                    showImage();
+                ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
+                if (postPanel != null){
+                    postPanel.updateImage();
                 }
             }
+
         });
     }
 
@@ -50,132 +80,29 @@ public class ShowPostFrame extends javax.swing.JFrame{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        postLabel = new javax.swing.JLabel();
-        tagPanel = new javax.swing.JPanel();
-        toolPanel = new javax.swing.JPanel();
-        downloadLabel = new javax.swing.JLabel();
+        tabbedPane = new javax.swing.JTabbedPane();
 
         setTitle("Post");
         setMinimumSize(new java.awt.Dimension(800, 650));
         setName(""); // NOI18N
         setPreferredSize(new java.awt.Dimension(800, 650));
-
-        postLabel.setBackground(new java.awt.Color(0, 0, 0));
-        postLabel.setForeground(new java.awt.Color(255, 255, 255));
-        postLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        postLabel.setText("加载中……");
-        postLabel.setOpaque(true);
-        postLabel.setPreferredSize(new java.awt.Dimension(800, 600));
-        getContentPane().add(postLabel, java.awt.BorderLayout.CENTER);
-
-        tagPanel.setBackground(new java.awt.Color(0, 0, 0));
-        tagPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        tagPanel.setLayout(new javax.swing.BoxLayout(tagPanel, javax.swing.BoxLayout.Y_AXIS));
-        getContentPane().add(tagPanel, java.awt.BorderLayout.LINE_START);
-
-        toolPanel.setBackground(new java.awt.Color(0, 0, 0));
-        toolPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        toolPanel.setLayout(new javax.swing.BoxLayout(toolPanel, javax.swing.BoxLayout.Y_AXIS));
-
-        downloadLabel.setForeground(new java.awt.Color(255, 255, 255));
-        downloadLabel.setText("下载大图");
-        downloadLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        downloadLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                downloadLabelMouseClicked(evt);
-            }
-        });
-        toolPanel.add(downloadLabel);
-
-        getContentPane().add(toolPanel, java.awt.BorderLayout.LINE_END);
+        getContentPane().add(tabbedPane, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void downloadLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadLabelMouseClicked
-        postLabel.setIcon(null);
-        postLabel.setText("加载中……");
-        image = null;
-        MoebooruViewer.execute(() -> {
-            image = MoebooruViewer.getNetIO().loadOrigin(presentingPost);
-            SwingUtilities.invokeLater(() -> {
-                if (image != null){
-                    showImage();
-                }else{
-                    postLabel.setText("加载失败！");
-                }
-            });
-        });
-    }//GEN-LAST:event_downloadLabelMouseClicked
-
     public void showPost(Post post){
-        postLabel.setIcon(null);
-        postLabel.setText("加载中……");
-        image = null;
-        setTitle("Post[" + post.getId() + "]");
-
-        presentingPost = post;
-        MoebooruViewer.execute(() -> {
-            image = MoebooruViewer.getNetIO().loadSample(post);
-            SwingUtilities.invokeLater(() -> {
-                if (presentingPost == post){
-                    if (image != null){
-                        showImage();
-                    }else{
-                        postLabel.setText("加载失败！");
-                    }
-                }
-            });
-        });
-
-        tagPanel.removeAll();
-        for (String tagName : post.getTags().split(" ")){
-            JLabel label = new JLabel(tagName);
-            label.setForeground(Color.WHITE);
-            label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            label.addMouseListener(new MouseAdapter(){
-
-                @Override
-                public void mouseClicked(MouseEvent e){
-                    new ListPostFrame(tagName).setVisible(true);
-                }
-
-            });
-            tagPanel.add(label);
-            MoebooruViewer.execute(() -> {
-                Tag tag = MoebooruViewer.getNetIO().retry(() -> MoebooruViewer.getMAPI().findTag(tagName));
-                if (tag != null){
-                    SwingUtilities.invokeLater(() -> {
-                        switch (tag.getType()){
-                            case Tag.TYPE_GENERAL:
-                                label.setForeground(Color.decode("0xEE8887"));
-                                break;
-                            case Tag.TYPE_ARTIST:
-                                label.setForeground(Color.decode("0xCCCC00"));
-                                break;
-                            case Tag.TYPE_COPYRIGHT:
-                                label.setForeground(Color.decode("0xDD00DD"));
-                                break;
-                            case Tag.TYPE_CHARACTER:
-                                label.setForeground(Color.decode("0x00AA00"));
-                                break;
-                        }
-                    });
-                }
-            });
+        ShowPostPanel postPanel = postPanelMap.get(post.getId());
+        if (postPanel == null){
+            postPanel = new ShowPostPanel();
+            postPanel.showPost(post);
+            tabbedPane.addTab(String.valueOf(post.getId()), postPanel);
+            postPanelMap.put(post.getId(), postPanel);
         }
-        repaint();
-    }
-
-    private void showImage(){
-        postLabel.setText("");
-        postLabel.setIcon(new ImageIcon(MoebooruViewer.resizeImage(image, postLabel.getWidth(), postLabel.getHeight())));
+        tabbedPane.setSelectedComponent(postPanel);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel downloadLabel;
-    private javax.swing.JLabel postLabel;
-    private javax.swing.JPanel tagPanel;
-    private javax.swing.JPanel toolPanel;
+    private javax.swing.JTabbedPane tabbedPane;
     // End of variables declaration//GEN-END:variables
 }

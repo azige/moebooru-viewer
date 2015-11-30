@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MoebooruViewer{
 
-    public static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
+    private static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
 
     public static final String KONACHAN_URL = "https://konachan.com";
     public static final String KONACHAN_NAME = "konachan.com";

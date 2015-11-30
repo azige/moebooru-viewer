@@ -34,7 +34,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     private static final int SAMPLE_HEIGHT = 100;
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
-    private Map<Post, ShowPostFrame> postFrameMap = new HashMap<>();
+    private ShowPostFrame postFrame = new ShowPostFrame();
+//    private Map<Post, ShowPostFrame> postFrameMap = new HashMap<>();
     private final JLabel loadMoreLabel;
     private String[] tags;
 
@@ -89,7 +90,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     @Override
     protected void processWindowEvent(WindowEvent e){
         if (e.getID() == WindowEvent.WINDOW_CLOSING){
-            postFrameMap.values().forEach(ShowPostFrame::dispose);
+            postFrame.dispose();
+//            postFrameMap.values().forEach(ShowPostFrame::dispose);
         }
         super.processWindowEvent(e);
     }
@@ -138,12 +140,14 @@ public class ListPostFrame extends javax.swing.JFrame{
                         @Override
                         public void mouseClicked(MouseEvent e){
                             if (SwingUtilities.isLeftMouseButton(e)){
-                                ShowPostFrame showPostFrame = postFrameMap.get(post);
-                                if (showPostFrame == null){
-                                    showPostFrame = new ShowPostFrame();
-                                    showPostFrame.showPost(post);
-                                }
-                                showPostFrame.setVisible(true);
+//                                 ShowPostFrame showPostFrame = postFrameMap.get(post);
+//                                if (showPostFrame == null){
+//                                    showPostFrame = new ShowPostFrame();
+//                                    showPostFrame.showPost(post);
+//                                }
+//                                showPostFrame.setVisible(true);
+                                postFrame.showPost(post);
+                                postFrame.setVisible(true);
                             }else if (SwingUtilities.isRightMouseButton(e)){
                                 label.setIcon(null);
                                 label.setText("加载中……");
