@@ -15,7 +15,6 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
@@ -138,10 +137,15 @@ public class NetIO{
 
     public Image loadImage(File localFile, String url, boolean force){
         if (cacheFile(localFile, url, force)){
-            try{
-                return ImageIO.read(localFile);
-            }catch (IOException ex){
-                logger.warn("读取本地文件出错", ex);
+            for (int i = 0; i < 5; i++){
+                try{
+                    // 偶尔有无法确认的 NullPointerException
+                    synchronized (ImageIO.class){
+                        return ImageIO.read(localFile);
+                    }
+                }catch (IOException ex){
+                    logger.warn("读取本地文件出错", ex);
+                }
             }
         }
         return null;

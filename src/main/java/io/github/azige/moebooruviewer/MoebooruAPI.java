@@ -51,7 +51,7 @@ public class MoebooruAPI{
 
     public List<Post> listPosts(int page, int limit, String... tags) throws IOException{
         String parameters = String.format("page=%d&limit=%d&tags=%s", page, limit,
-            Stream.of(tags).collect(StringBuilder::new, (sb, s) -> sb.append('+').append(s), (sb1, sb2) -> sb1.append('+').append(sb2)).toString()
+            Stream.of(tags).reduce((s1, s2) -> s1 + "+" + s2).orElse("")
         );
         URL url = new URL(rootUrl + POSTS_PATH + "?" + parameters);
         try (InputStream input = MoebooruViewer.getNetIO().openStream(url)){

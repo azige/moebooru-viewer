@@ -37,17 +37,18 @@ public class MoebooruViewer{
     public static final String YANDERE_URL = "https://yande.re";
     public static final String YANDERE_NAME = "yande.re";
 
-    public static final String CACHE_DIR_NAME = KONACHAN_NAME;
+    private static String siteName = KONACHAN_NAME;
 
     private static final int THREAD_POOL_SIZE = 10;
 
     private static ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     private static MoebooruAPI mapi = new MoebooruAPI(KONACHAN_URL);
-    private static NetIO netIO = new NetIO(new File(CACHE_DIR_NAME));
+    private static NetIO netIO = new NetIO(new File(siteName));
+    private static ListPostFrame listPostFrame;
 
     private static void init(){
         logger.info("init");
-        File tagFile = new File(CACHE_DIR_NAME, "tags.json");
+        File tagFile = new File(siteName, "tags.json");
         if (tagFile.exists()){
             ObjectMapper mapper = new ObjectMapper();
             try{
@@ -61,6 +62,38 @@ public class MoebooruViewer{
                 logger.warn("无法读取tag记录文件", ex);
             }
         }
+    }
+
+    public static void switchToKonachan(){
+        ListPostFrame.disposeAllInstance();
+
+        destroy();
+
+        siteName = KONACHAN_NAME;
+        mapi = new MoebooruAPI(KONACHAN_URL);
+        netIO = new NetIO(new File(KONACHAN_NAME));
+        executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
+        init();
+
+        listPostFrame = new ListPostFrame(KONACHAN_NAME);
+        configFrame(listPostFrame);
+    }
+
+    public static void switchToYandere(){
+        ListPostFrame.disposeAllInstance();
+
+        destroy();
+
+        siteName = YANDERE_NAME;
+        mapi = new MoebooruAPI(YANDERE_URL);
+        netIO = new NetIO(new File(YANDERE_NAME));
+        executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
+        init();
+
+        listPostFrame = new ListPostFrame(YANDERE_NAME);
+        configFrame(listPostFrame);
     }
 
     public static Image resizeImage(Image image, double maxWidth, double maxHeight){
@@ -90,16 +123,33 @@ public class MoebooruViewer{
         executorService.execute(task);
     }
 
+    public static String getSiteName(){
+        return siteName;
+    }
+
     private static void destroy(){
         logger.info("destroy");
         executorService.shutdownNow();
         ObjectMapper mapper = new ObjectMapper();
-        File tagFile = new File(CACHE_DIR_NAME, "tags.json");
+        File tagFile = new File(siteName, "tags.json");
         try{
             mapper.writeValue(tagFile, mapi.getTagMap());
         }catch (IOException ex){
             logger.warn("无法读取tag记录文件", ex);
         }
+    }
+
+    private static void configFrame(ListPostFrame frame){
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter(){
+
+            @Override
+            public void windowClosing(WindowEvent e){
+                destroy();
+            }
+
+        });
+        frame.setVisible(true);
     }
 
     /**
@@ -127,17 +177,8 @@ public class MoebooruViewer{
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            JFrame frame = new ListPostFrame();
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.addWindowListener(new WindowAdapter(){
-
-                @Override
-                public void windowClosing(WindowEvent e){
-                    destroy();
-                }
-
-            });
-            frame.setVisible(true);
+            listPostFrame = new ListPostFrame(siteName);
+            configFrame(listPostFrame);
         });
     }
 }

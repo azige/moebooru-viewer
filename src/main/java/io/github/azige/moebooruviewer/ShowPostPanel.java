@@ -8,7 +8,11 @@ import java.awt.Cursor;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.EventObject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.ImageIcon;
@@ -28,6 +32,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private static final Map<Integer, Color> tagColorMap;
     private Post presentingPost;
     private Image image;
+    private List<LoadingListener> loadingListeners = new ArrayList<>();
 
     static{
         tagColorMap = new HashMap<>();
@@ -35,6 +40,25 @@ public class ShowPostPanel extends javax.swing.JPanel{
         tagColorMap.put(Tag.TYPE_ARTIST, Color.decode("0xCCCC00"));
         tagColorMap.put(Tag.TYPE_COPYRIGHT, Color.decode("0xDD00DD"));
         tagColorMap.put(Tag.TYPE_CHARACTER, Color.decode("0x00AA00"));
+    }
+
+    public class LoadingEvent extends EventObject{
+
+        public LoadingEvent(){
+            super(ShowPostPanel.this);
+        }
+
+        @Override
+        public ShowPostPanel getSource(){
+            return (ShowPostPanel)super.getSource();
+        }
+    }
+
+    public interface LoadingListener extends EventListener{
+
+        void loading(LoadingEvent event);
+
+        void done(LoadingEvent event);
     }
 
     /**
@@ -59,23 +83,22 @@ public class ShowPostPanel extends javax.swing.JPanel{
         toolPanel = new javax.swing.JPanel();
         downloadLabel = new javax.swing.JLabel();
 
+        setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
 
-        postLabel.setBackground(new java.awt.Color(0, 0, 0));
         postLabel.setForeground(new java.awt.Color(255, 255, 255));
         postLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         postLabel.setText("加载中……");
-        postLabel.setOpaque(true);
         postLabel.setPreferredSize(new java.awt.Dimension(800, 600));
         add(postLabel, java.awt.BorderLayout.CENTER);
 
-        tagPanel.setBackground(new java.awt.Color(0, 0, 0));
         tagPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        tagPanel.setOpaque(false);
         tagPanel.setLayout(new javax.swing.BoxLayout(tagPanel, javax.swing.BoxLayout.Y_AXIS));
         add(tagPanel, java.awt.BorderLayout.LINE_START);
 
-        toolPanel.setBackground(new java.awt.Color(0, 0, 0));
         toolPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        toolPanel.setOpaque(false);
         toolPanel.setLayout(new javax.swing.BoxLayout(toolPanel, javax.swing.BoxLayout.Y_AXIS));
 
         downloadLabel.setForeground(new java.awt.Color(255, 255, 255));
@@ -107,9 +130,22 @@ public class ShowPostPanel extends javax.swing.JPanel{
         });
     }//GEN-LAST:event_downloadLabelMouseClicked
 
+    public void addLoadingListener(LoadingListener listener){
+        loadingListeners.add(listener);
+    }
+
+    public void removeLoadingListener(LoadingListener listener){
+        loadingListeners.remove(listener);
+    }
+
+    public Image getImage(){
+        return image;
+    }
+
     public void showPost(Post post){
         postLabel.setIcon(null);
         postLabel.setText("加载中……");
+        loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
         image = null;
 
         presentingPost = post;
@@ -122,6 +158,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
                     }else{
                         postLabel.setText("加载失败！");
                     }
+                    loadingListeners.forEach(l -> l.done(new LoadingEvent()));
                 }
             });
         });
@@ -135,7 +172,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
                 @Override
                 public void mouseClicked(MouseEvent e){
-                    new ListPostFrame(tagName).setVisible(true);
+                    new ListPostFrame(MoebooruViewer.getSiteName(), tagName).setVisible(true);
                 }
 
             });

@@ -11,10 +11,13 @@ import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import io.github.azige.moebooruviewer.ShowPostPanel.LoadingEvent;
+import io.github.azige.moebooruviewer.ShowPostPanel.LoadingListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +49,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
 
             @Override
             public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2){
+                if (SwingUtilities.isRightMouseButton(e)){
                     ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
                     tabbedPane.remove(postPanel);
                     postPanelMap.values().remove(postPanel);
@@ -68,6 +71,15 @@ public class ShowPostFrame extends javax.swing.JFrame{
             }
 
         });
+    }
+
+    @Override
+    protected void processWindowEvent(WindowEvent e){
+        super.processWindowEvent(e);
+        if (e.getID() == WindowEvent.WINDOW_CLOSING){
+            tabbedPane.removeAll();
+            postPanelMap.clear();
+        }
     }
 
     /**
@@ -95,9 +107,27 @@ public class ShowPostFrame extends javax.swing.JFrame{
         ShowPostPanel postPanel = postPanelMap.get(post.getId());
         if (postPanel == null){
             postPanel = new ShowPostPanel();
-            postPanel.showPost(post);
-            tabbedPane.addTab(String.valueOf(post.getId()), postPanel);
+            postPanel.addLoadingListener(new LoadingListener(){
+
+                @Override
+                public void loading(LoadingEvent event){
+                    int index = tabbedPane.indexOfComponent(event.getSource());
+                    tabbedPane.setTitleAt(index, post.getId() + "*");
+                }
+
+                @Override
+                public void done(LoadingEvent event){
+                    int index = tabbedPane.indexOfComponent(event.getSource());
+                    if (tabbedPane.getIconAt(index) == null){
+                        tabbedPane.setIconAt(index, new ImageIcon(MoebooruViewer.resizeImage(event.getSource().getImage(), 32, 32)));
+                    }
+                    tabbedPane.setTitleAt(index, String.valueOf(post.getId()));
+                }
+
+            });
+            tabbedPane.addTab(null, null, postPanel, post.getTags());
             postPanelMap.put(post.getId(), postPanel);
+            postPanel.showPost(post);
         }
         tabbedPane.setSelectedComponent(postPanel);
     }

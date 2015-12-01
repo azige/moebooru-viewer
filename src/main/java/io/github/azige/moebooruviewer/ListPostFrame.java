@@ -12,10 +12,9 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -32,19 +31,22 @@ public class ListPostFrame extends javax.swing.JFrame{
 
     private static final int SAMPLE_WIDTH = 150;
     private static final int SAMPLE_HEIGHT = 100;
+    private static final List<ListPostFrame> instances = new ArrayList<>();
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
     private ShowPostFrame postFrame = new ShowPostFrame();
-//    private Map<Post, ShowPostFrame> postFrameMap = new HashMap<>();
     private final JLabel loadMoreLabel;
+    private String siteName;
     private String[] tags;
 
     /**
      * Creates new form MainFrame
      */
-    public ListPostFrame(String... tags){
+    public ListPostFrame(String siteName, String... tags){
         initComponents();
 
+        this.siteName = siteName;
+        setTitle(siteName + " viewer");
         this.tags = tags;
         if (tags.length > 0){
             setTitle(getTitle() + "[" + Stream.of(tags).reduce((a, b) -> a + " " + b).get() + "]");
@@ -85,15 +87,21 @@ public class ListPostFrame extends javax.swing.JFrame{
         postsPanel.add(loadMoreLabel);
 
         loadImages();
+
+        instances.add(this);
+    }
+
+    public static void disposeAllInstance(){
+        instances.forEach(ListPostFrame::dispose);
+        instances.clear();
     }
 
     @Override
     protected void processWindowEvent(WindowEvent e){
-        if (e.getID() == WindowEvent.WINDOW_CLOSING){
-            postFrame.dispose();
-//            postFrameMap.values().forEach(ShowPostFrame::dispose);
-        }
         super.processWindowEvent(e);
+        if (e.getID() == WindowEvent.WINDOW_CLOSING || e.getID() == WindowEvent.WINDOW_CLOSED){
+            postFrame.dispose();
+        }
     }
 
     private void loadImages(){
@@ -146,8 +154,8 @@ public class ListPostFrame extends javax.swing.JFrame{
 //                                    showPostFrame.showPost(post);
 //                                }
 //                                showPostFrame.setVisible(true);
-                                postFrame.showPost(post);
                                 postFrame.setVisible(true);
+                                postFrame.showPost(post);
                             }else if (SwingUtilities.isRightMouseButton(e)){
                                 label.setIcon(null);
                                 label.setText("加载中……");
@@ -184,6 +192,9 @@ public class ListPostFrame extends javax.swing.JFrame{
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
+        jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Moebooru Viewer");
@@ -193,7 +204,7 @@ public class ListPostFrame extends javax.swing.JFrame{
         scrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        postsPanel.setBackground(new java.awt.Color(0, 0, 0));
+        postsPanel.setBackground(new java.awt.Color(34, 34, 34));
         postsPanel.setPreferredSize(new java.awt.Dimension(800, 10000));
         postsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         scrollPane.setViewportView(postsPanel);
@@ -207,6 +218,26 @@ public class ListPostFrame extends javax.swing.JFrame{
             }
         });
         jMenu1.add(jMenuItem1);
+
+        jMenu2.setText("切换站点");
+
+        jMenuItem2.setText("Konachan.com");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem2);
+
+        jMenuItem3.setText("yande.re");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem3);
+
+        jMenu1.add(jMenu2);
 
         jMenuBar1.add(jMenu1);
 
@@ -227,14 +258,29 @@ public class ListPostFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        new ListPostFrame(JOptionPane.showInputDialog("输入要搜索的tag，用空格分隔").split(" ")).setVisible(true);
+        String tags = JOptionPane.showInputDialog(this, "输入要搜索的tag，用空格分隔");
+        if (tags != null){
+            ListPostFrame frame = new ListPostFrame(siteName, tags.split(" "));
+            frame.setVisible(true);
+        }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        MoebooruViewer.switchToKonachan();
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        MoebooruViewer.switchToYandere();
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPanel postsPanel;
     private javax.swing.JScrollPane scrollPane;
     // End of variables declaration//GEN-END:variables
