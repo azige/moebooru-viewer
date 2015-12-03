@@ -17,16 +17,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Azige
  */
+@Component
 public class NetIO{
 
     @FunctionalInterface
@@ -47,16 +51,23 @@ public class NetIO{
     public static final String TAG_DIR_NAME = "tags";
 
     private static final Logger logger = LoggerFactory.getLogger(NetIO.class);
+
+    @Autowired
+    private SiteConfig siteConfig;
+
     private int maxRetryCount = 5;
-    private File cacheDir;
     private File previewDir;
     private File sampleDir;
     private File originDir;
     private boolean forceHttps = true;
     private final Map<File, Object> fileLockerMap = new HashMap<>();
 
-    public NetIO(File cacheDir){
-        this.cacheDir = cacheDir;
+    public NetIO(){
+    }
+
+    @PostConstruct
+    private void init(){
+        File cacheDir = new File(siteConfig.getName());
         previewDir = new File(cacheDir, PREVIEW_DIR_NAME);
         sampleDir = new File(cacheDir, SAMPLE_DIR_NAME);
         originDir = new File(cacheDir, ORIGIN_DIR_NAME);

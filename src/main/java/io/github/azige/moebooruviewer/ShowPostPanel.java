@@ -14,6 +14,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -21,14 +22,30 @@ import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Azige
  */
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ShowPostPanel extends javax.swing.JPanel{
 
     private static final Logger logger = LoggerFactory.getLogger(ShowPostPanel.class);
+
+    @Autowired
+    MoebooruViewer moebooruViewer;
+    @Autowired
+    private ExecutorService executor;
+    @Autowired
+    private MoebooruAPI mapi;
+    @Autowired
+    private NetIO netIO;
+
     private static final Map<Integer, Color> tagColorMap;
     private Post presentingPost;
     private Image image;
@@ -118,8 +135,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
         postLabel.setIcon(null);
         postLabel.setText("加载中……");
         image = null;
-        MoebooruViewer.execute(() -> {
-            image = MoebooruViewer.getNetIO().loadOrigin(presentingPost);
+        executor.execute(() -> {
+            image = netIO.loadOrigin(presentingPost);
             SwingUtilities.invokeLater(() -> {
                 if (image != null){
                     showImage();
@@ -149,8 +166,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
         image = null;
 
         presentingPost = post;
-        MoebooruViewer.execute(() -> {
-            image = MoebooruViewer.getNetIO().loadSample(post);
+        executor.execute(() -> {
+            image = netIO.loadSample(post);
             SwingUtilities.invokeLater(() -> {
                 if (presentingPost == post){
                     if (image != null){
@@ -172,13 +189,13 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
                 @Override
                 public void mouseClicked(MouseEvent e){
-                    new ListPostFrame(MoebooruViewer.getSiteName(), tagName).setVisible(true);
+                    moebooruViewer.listPosts(tagName);
                 }
 
             });
             tagPanel.add(label);
-            MoebooruViewer.execute(() -> {
-                Tag tag = MoebooruViewer.getNetIO().retry(() -> MoebooruViewer.getMAPI().findTag(tagName));
+            executor.execute(() -> {
+                Tag tag = netIO.retry(() -> mapi.findTag(tagName));
                 if (tag != null){
                     SwingUtilities.invokeLater(() -> {
                         Color color = tagColorMap.get(tag.getType());

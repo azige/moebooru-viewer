@@ -34,6 +34,11 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.12</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>4.2.1.RELEASE</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -57,9 +62,9 @@
                 </executions>
                 <configuration>
                     <descriptors>
-                        <descriptor>src/main/config/assembly.xml</descriptor>
+                        <descriptor>src/main/config/assembly-bin.xml</descriptor>
+                        <descriptor>src/main/config/assembly-update-package.xml</descriptor>
                     </descriptors>
-                    <finalName>${project.build.finalName}-${maven.build.timestamp}</finalName>
                 </configuration>
             </plugin>
             <plugin>
@@ -77,4 +82,16 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/release/resources</directory>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+    </profiles>
 </project>

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,11 +16,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Azige
  */
+@Component
 public class MoebooruAPI{
 
     private static final int LIMIT = 20;
@@ -29,12 +31,15 @@ public class MoebooruAPI{
     private static final String TAG_PATH = "/tag.json";
     private static final Logger logger = LoggerFactory.getLogger(MoebooruAPI.class);
 
+    @Autowired
+    private SiteConfig siteConfig;
+    @Autowired
+    private NetIO netIO;
+
     private Map<String, Tag> tagMap = new ConcurrentHashMap<>();
-    private String rootUrl;
     private ObjectMapper mapper = new ObjectMapper();
 
-    public MoebooruAPI(String site){
-        this.rootUrl = site;
+    public MoebooruAPI(){
     }
 
     public List<Post> listPosts() throws IOException{
@@ -53,8 +58,8 @@ public class MoebooruAPI{
         String parameters = String.format("page=%d&limit=%d&tags=%s", page, limit,
             Stream.of(tags).reduce((s1, s2) -> s1 + "+" + s2).orElse("")
         );
-        URL url = new URL(rootUrl + POSTS_PATH + "?" + parameters);
-        try (InputStream input = MoebooruViewer.getNetIO().openStream(url)){
+        URL url = new URL(siteConfig.getRootUrl() + POSTS_PATH + "?" + parameters);
+        try (InputStream input = netIO.openStream(url)){
             JsonNode posts = mapper.readTree(input);
             List<Post> postList = new ArrayList<>();
             posts.forEach(post -> postList.add(mapper.convertValue(post, Post.class)));
@@ -76,8 +81,8 @@ public class MoebooruAPI{
             return tag;
         }
         String parameters = String.format("name=%s", name);
-        URL url = new URL(rootUrl + TAG_PATH + "?" + parameters);
-        try (InputStream input = MoebooruViewer.getNetIO().openStream(url)){
+        URL url = new URL(siteConfig.getRootUrl() + TAG_PATH + "?" + parameters);
+        try (InputStream input = netIO.openStream(url)){
             JsonNode tags = mapper.readTree(input);
             for (JsonNode tagNode : tags){
                 tag = mapper.convertValue(tagNode, Tag.class);

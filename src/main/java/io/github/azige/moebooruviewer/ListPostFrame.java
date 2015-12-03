@@ -12,45 +12,62 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 /**
  *
  * @author Azige
  */
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ListPostFrame extends javax.swing.JFrame{
 
+    private static final Logger logger = LoggerFactory.getLogger(ListPostFrame.class);
     private static final int SAMPLE_WIDTH = 150;
     private static final int SAMPLE_HEIGHT = 100;
-    private static final List<ListPostFrame> instances = new ArrayList<>();
+
+    @Autowired
+    private SiteConfig siteConfig;
+    @Autowired
+    private MoebooruViewer moebooruViewer;
+    @Autowired
+    private NetIO netIO;
+    @Autowired
+    private ExecutorService executor;
+    @Autowired
+    private MoebooruAPI mapi;
+    @Autowired
+    private ShowPostFrame postFrame;
+
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
-    private ShowPostFrame postFrame = new ShowPostFrame();
     private final JLabel loadMoreLabel;
-    private String siteName;
     private String[] tags;
 
     /**
      * Creates new form MainFrame
      */
-    public ListPostFrame(String siteName, String... tags){
+    public ListPostFrame(){
         initComponents();
 
-        this.siteName = siteName;
-        setTitle(siteName + " viewer");
-        this.tags = tags;
-        if (tags.length > 0){
-            setTitle(getTitle() + "[" + Stream.of(tags).reduce((a, b) -> a + " " + b).get() + "]");
-        }
         setLocationRelativeTo(null);
         postsPanel.setLayout(new FlowLayout(){
 
@@ -85,15 +102,22 @@ public class ListPostFrame extends javax.swing.JFrame{
         });
 
         postsPanel.add(loadMoreLabel);
-
-        loadImages();
-
-        instances.add(this);
     }
 
-    public static void disposeAllInstance(){
-        instances.forEach(ListPostFrame::dispose);
-        instances.clear();
+    @PostConstruct
+    private void init(){
+        setTitle(siteConfig.getName() + " Viewer");
+    }
+
+    public String[] getTags(){
+        return tags;
+    }
+
+    public void setTags(String[] tags){
+        this.tags = Objects.requireNonNull(tags);
+        if (tags.length > 0){
+            setTitle(siteConfig.getName() + " Viewer[" + Stream.of(tags).reduce((a, b) -> a + " " + b).get() + "]");
+        }
     }
 
     @Override
@@ -104,11 +128,11 @@ public class ListPostFrame extends javax.swing.JFrame{
         }
     }
 
-    private void loadImages(){
+    public void loadImages(){
         loadMoreLabel.setText("加载中……");
         loadMoreLabel.setEnabled(false);
-        MoebooruViewer.execute(() -> {
-            List<Post> postList = MoebooruViewer.getNetIO().retry(() -> MoebooruViewer.getMAPI().listPosts(pageCount, tags));
+        executor.execute(() -> {
+            List<Post> postList = netIO.retry(() -> mapi.listPosts(pageCount, tags));
             SwingUtilities.invokeLater(() -> {
                 pageCount++;
                 postsPanel.remove(loadMoreLabel);
@@ -129,7 +153,7 @@ public class ListPostFrame extends javax.swing.JFrame{
 
                         @Override
                         public void run(){
-                            Image image = MoebooruViewer.getNetIO().loadPreview(post, force);
+                            Image image = netIO.loadPreview(post, force);
                             SwingUtilities.invokeLater(() -> {
                                 if (image != null){
                                     label.setText("");
@@ -148,12 +172,6 @@ public class ListPostFrame extends javax.swing.JFrame{
                         @Override
                         public void mouseClicked(MouseEvent e){
                             if (SwingUtilities.isLeftMouseButton(e)){
-//                                 ShowPostFrame showPostFrame = postFrameMap.get(post);
-//                                if (showPostFrame == null){
-//                                    showPostFrame = new ShowPostFrame();
-//                                    showPostFrame.showPost(post);
-//                                }
-//                                showPostFrame.setVisible(true);
                                 postFrame.setVisible(true);
                                 postFrame.showPost(post);
                             }else if (SwingUtilities.isRightMouseButton(e)){
@@ -161,14 +179,14 @@ public class ListPostFrame extends javax.swing.JFrame{
                                 label.setText("加载中……");
                                 LoadImageTask task = new LoadImageTask();
                                 task.force = true;
-                                MoebooruViewer.execute(task);
+                                executor.execute(task);
                             }
                         }
 
                     });
                     postsPanel.add(label);
                     LoadImageTask task = new LoadImageTask();
-                    MoebooruViewer.execute(task);
+                    executor.execute(task);
                 }
                 postsPanel.add(loadMoreLabel);
                 loadMoreLabel.setText("加载更多");
@@ -260,17 +278,16 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         String tags = JOptionPane.showInputDialog(this, "输入要搜索的tag，用空格分隔");
         if (tags != null){
-            ListPostFrame frame = new ListPostFrame(siteName, tags.split(" "));
-            frame.setVisible(true);
+            moebooruViewer.listPosts(tags.split(" "));
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        MoebooruViewer.switchToKonachan();
+        moebooruViewer.switchSite(SiteConfig.KONACHAN);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
-        MoebooruViewer.switchToYandere();
+        moebooruViewer.switchSite(SiteConfig.YANDERE);
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
 

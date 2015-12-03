@@ -9,24 +9,37 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.swing.JFrame;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.swing.SwingUtilities;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Azige
  */
+@Configuration
+@ComponentScan
+@Component
 public class MoebooruViewer{
 
     private static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
@@ -37,18 +50,26 @@ public class MoebooruViewer{
     public static final String YANDERE_URL = "https://yande.re";
     public static final String YANDERE_NAME = "yande.re";
 
-    private static String siteName = KONACHAN_NAME;
-
     private static final int THREAD_POOL_SIZE = 10;
 
-    private static ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-    private static MoebooruAPI mapi = new MoebooruAPI(KONACHAN_URL);
-    private static NetIO netIO = new NetIO(new File(siteName));
-    private static ListPostFrame listPostFrame;
+    @Autowired
+    private AnnotationConfigApplicationContext context;
+    @Autowired
+    private SiteConfig siteConfig;
+    @Autowired
+    private ExecutorService executor;
+    @Autowired
+    private MoebooruAPI mapi;
 
-    private static void init(){
+    private Set<ListPostFrame> listPostFrames = new HashSet<>();
+
+    public MoebooruViewer(){
+    }
+
+    @PostConstruct
+    private void init(){
         logger.info("init");
-        File tagFile = new File(siteName, "tags.json");
+        File tagFile = new File(siteConfig.getName(), "tags.json");
         if (tagFile.exists()){
             ObjectMapper mapper = new ObjectMapper();
             try{
@@ -62,38 +83,6 @@ public class MoebooruViewer{
                 logger.warn("无法读取tag记录文件", ex);
             }
         }
-    }
-
-    public static void switchToKonachan(){
-        ListPostFrame.disposeAllInstance();
-
-        destroy();
-
-        siteName = KONACHAN_NAME;
-        mapi = new MoebooruAPI(KONACHAN_URL);
-        netIO = new NetIO(new File(KONACHAN_NAME));
-        executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-
-        init();
-
-        listPostFrame = new ListPostFrame(KONACHAN_NAME);
-        configFrame(listPostFrame);
-    }
-
-    public static void switchToYandere(){
-        ListPostFrame.disposeAllInstance();
-
-        destroy();
-
-        siteName = YANDERE_NAME;
-        mapi = new MoebooruAPI(YANDERE_URL);
-        netIO = new NetIO(new File(YANDERE_NAME));
-        executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-
-        init();
-
-        listPostFrame = new ListPostFrame(YANDERE_NAME);
-        configFrame(listPostFrame);
     }
 
     public static Image resizeImage(Image image, double maxWidth, double maxHeight){
@@ -111,27 +100,40 @@ public class MoebooruViewer{
         return image.getScaledInstance((int)width, (int)height, Image.SCALE_SMOOTH);
     }
 
-    public static MoebooruAPI getMAPI(){
-        return mapi;
+    public void listPosts(String... tags){
+        ListPostFrame listPostFrame = context.getBean(ListPostFrame.class);
+        listPostFrame.setTags(tags);
+        listPostFrame.setVisible(true);
+        listPostFrame.loadImages();
+
+        listPostFrames.add(listPostFrame);
+        listPostFrame.addWindowListener(new WindowAdapter(){
+
+            @Override
+            public void windowClosing(WindowEvent e){
+                listPostFrames.remove((ListPostFrame)e.getWindow());
+                if (listPostFrames.isEmpty()){
+                    context.close();
+                }
+            }
+
+        });
     }
 
-    public static NetIO getNetIO(){
-        return netIO;
+    public void switchSite(SiteConfig siteConfig){
+        context.close();
+
+        ApplicationContext context = buildContext(siteConfig);
+        context.getBean(MoebooruViewer.class).listPosts();
     }
 
-    public static void execute(Runnable task){
-        executorService.execute(task);
-    }
-
-    public static String getSiteName(){
-        return siteName;
-    }
-
-    private static void destroy(){
+    @PreDestroy
+    private void destroy(){
         logger.info("destroy");
-        executorService.shutdownNow();
+        listPostFrames.forEach(ListPostFrame::dispose);
+        executor.shutdownNow();
         ObjectMapper mapper = new ObjectMapper();
-        File tagFile = new File(siteName, "tags.json");
+        File tagFile = new File(siteConfig.getName(), "tags.json");
         try{
             mapper.writeValue(tagFile, mapi.getTagMap());
         }catch (IOException ex){
@@ -139,17 +141,14 @@ public class MoebooruViewer{
         }
     }
 
-    private static void configFrame(ListPostFrame frame){
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.addWindowListener(new WindowAdapter(){
-
-            @Override
-            public void windowClosing(WindowEvent e){
-                destroy();
-            }
-
-        });
-        frame.setVisible(true);
+    private static ApplicationContext buildContext(SiteConfig siteConfig){
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getBeanFactory().registerResolvableDependency(ExecutorService.class, Executors.newFixedThreadPool(THREAD_POOL_SIZE));
+        context.getBeanFactory().registerResolvableDependency(SiteConfig.class, siteConfig);
+        context.register(MoebooruViewer.class);
+        context.registerShutdownHook();
+        context.refresh();
+        return context;
     }
 
     /**
@@ -172,13 +171,11 @@ public class MoebooruViewer{
             java.util.logging.Logger.getLogger(ListPostFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
-        init();
+        ApplicationContext context = buildContext(SiteConfig.KONACHAN);
+        SwingUtilities.invokeLater(() -> {
+            context.getBean(MoebooruViewer.class).listPosts();
+        });
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> {
-            listPostFrame = new ListPostFrame(siteName);
-            configFrame(listPostFrame);
-        });
     }
 }

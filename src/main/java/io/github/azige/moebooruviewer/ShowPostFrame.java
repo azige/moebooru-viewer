@@ -20,14 +20,25 @@ import io.github.azige.moebooruviewer.ShowPostPanel.LoadingEvent;
 import io.github.azige.moebooruviewer.ShowPostPanel.LoadingListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Azige
  */
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ShowPostFrame extends javax.swing.JFrame{
 
     private static final Logger logger = LoggerFactory.getLogger(ShowPostFrame.class);
+
+    @Autowired
+    private ApplicationContext context;
+
     private Map<Long, ShowPostPanel> postPanelMap = new HashMap<>();
 
     /**
@@ -106,7 +117,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
     public void showPost(Post post){
         ShowPostPanel postPanel = postPanelMap.get(post.getId());
         if (postPanel == null){
-            postPanel = new ShowPostPanel();
+            postPanel = context.getBean(ShowPostPanel.class);
             postPanel.addLoadingListener(new LoadingListener(){
 
                 @Override
