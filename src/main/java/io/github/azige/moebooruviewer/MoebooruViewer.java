@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.swing.SwingUtilities;
+import javax.xml.bind.JAXB;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,12 +45,8 @@ public class MoebooruViewer{
 
     private static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
 
-    public static final String KONACHAN_URL = "https://konachan.com";
-    public static final String KONACHAN_NAME = "konachan.com";
-
-    public static final String YANDERE_URL = "https://yande.re";
-    public static final String YANDERE_NAME = "yande.re";
-
+    private static final String TAG_FILE_NAME = "tags.json";
+    private static final String SETTING_FILE_NAME = "settings.xml";
     private static final int THREAD_POOL_SIZE = 10;
 
     @Autowired
@@ -60,6 +57,8 @@ public class MoebooruViewer{
     private ExecutorService executor;
     @Autowired
     private MoebooruAPI mapi;
+    @Autowired
+    private UserSetting userSetting;
 
     private Set<ListPostFrame> listPostFrames = new HashSet<>();
 
@@ -69,7 +68,7 @@ public class MoebooruViewer{
     @PostConstruct
     private void init(){
         logger.info("init");
-        File tagFile = new File(siteConfig.getName(), "tags.json");
+        File tagFile = new File(siteConfig.getName(), TAG_FILE_NAME);
         if (tagFile.exists()){
             ObjectMapper mapper = new ObjectMapper();
             try{
@@ -123,8 +122,13 @@ public class MoebooruViewer{
     public void switchSite(SiteConfig siteConfig){
         context.close();
 
-        ApplicationContext context = buildContext(siteConfig);
+        userSetting.setSiteConfig(siteConfig);
+        ApplicationContext context = buildContext(userSetting);
         context.getBean(MoebooruViewer.class).listPosts();
+    }
+
+    public void exit(){
+        context.close();
     }
 
     @PreDestroy
@@ -133,18 +137,20 @@ public class MoebooruViewer{
         listPostFrames.forEach(ListPostFrame::dispose);
         executor.shutdownNow();
         ObjectMapper mapper = new ObjectMapper();
-        File tagFile = new File(siteConfig.getName(), "tags.json");
+        File tagFile = new File(siteConfig.getName(), TAG_FILE_NAME);
         try{
             mapper.writeValue(tagFile, mapi.getTagMap());
         }catch (IOException ex){
             logger.warn("无法读取tag记录文件", ex);
         }
+        JAXB.marshal(userSetting, new File(SETTING_FILE_NAME));
     }
 
-    private static ApplicationContext buildContext(SiteConfig siteConfig){
+    private static ApplicationContext buildContext(UserSetting userSetting){
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.getBeanFactory().registerResolvableDependency(ExecutorService.class, Executors.newFixedThreadPool(THREAD_POOL_SIZE));
-        context.getBeanFactory().registerResolvableDependency(SiteConfig.class, siteConfig);
+        context.getBeanFactory().registerResolvableDependency(SiteConfig.class, userSetting.getSiteConfig());
+        context.getBeanFactory().registerResolvableDependency(UserSetting.class, userSetting);
         context.register(MoebooruViewer.class);
         context.registerShutdownHook();
         context.refresh();
@@ -171,11 +177,24 @@ public class MoebooruViewer{
             java.util.logging.Logger.getLogger(ListPostFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        ApplicationContext context = buildContext(SiteConfig.KONACHAN);
+
+        UserSetting setting = null;
+        File settingFile = new File(SETTING_FILE_NAME);
+        if (settingFile.exists()){
+            try{
+                setting = JAXB.unmarshal(settingFile, UserSetting.class);
+            }catch (RuntimeException ex){
+                logger.warn("读取用户配置文件出错", ex);
+            }
+        }
+        if (setting == null){
+            setting = new UserSetting();
+            setting.setSiteConfig(SiteConfig.KONACHAN);
+        }
+
+        ApplicationContext context = buildContext(setting);
         SwingUtilities.invokeLater(() -> {
             context.getBean(MoebooruViewer.class).listPosts();
         });
-
-        /* Create and display the form */
     }
 }
