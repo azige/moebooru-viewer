@@ -12,6 +12,7 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -22,9 +23,11 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,11 +59,13 @@ public class ListPostFrame extends javax.swing.JFrame{
     private MoebooruAPI mapi;
     @Autowired
     private ShowPostFrame postFrame;
+    @Autowired
+    private UserSetting userSetting;
 
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
     private final JLabel loadMoreLabel;
-    private String[] tags;
+    private String[] tags = {};
 
     /**
      * Creates new form MainFrame
@@ -115,9 +120,7 @@ public class ListPostFrame extends javax.swing.JFrame{
 
     public void setTags(String[] tags){
         this.tags = Objects.requireNonNull(tags);
-        if (tags.length > 0){
-            setTitle(siteConfig.getName() + " Viewer[" + Stream.of(tags).reduce((a, b) -> a + " " + b).get() + "]");
-        }
+        refreshTitle();
     }
 
     @Override
@@ -128,9 +131,21 @@ public class ListPostFrame extends javax.swing.JFrame{
         }
     }
 
+    private void refreshTitle(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(siteConfig.getName()).append(" Viewer");
+        sb.append(" [page: ").append(pageCount).append("]");
+        if (tags.length > 0){
+            sb.append(" [").append(Stream.of(tags).reduce((a, b) -> a + " " + b).get()).append("]");
+        }
+
+        setTitle(sb.toString());
+    }
+
     public void loadImages(){
         loadMoreLabel.setText("加载中……");
         loadMoreLabel.setEnabled(false);
+        refreshTitle();
         executor.execute(() -> {
             List<Post> postList = netIO.retry(() -> mapi.listPosts(pageCount, tags));
             SwingUtilities.invokeLater(() -> {
@@ -189,10 +204,21 @@ public class ListPostFrame extends javax.swing.JFrame{
                     executor.execute(task);
                 }
                 postsPanel.add(loadMoreLabel);
-                loadMoreLabel.setText("加载更多");
-                loadMoreLabel.setEnabled(true);
+                if (!postList.isEmpty()){
+                    loadMoreLabel.setText("加载更多");
+                    loadMoreLabel.setEnabled(true);
+                }else{
+                    loadMoreLabel.setText("没有更多了");
+                }
             });
         });
+    }
+
+    public void clear(){
+        posts.clear();
+        postsPanel.removeAll();
+        postsPanel.add(loadMoreLabel);
+        repaint();
     }
 
     /**
@@ -209,11 +235,16 @@ public class ListPostFrame extends javax.swing.JFrame{
         postsPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        jumpPageMenuItem = new javax.swing.JMenuItem();
         searchTagMenuItem = new javax.swing.JMenuItem();
+        searchHistoryMenu = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         switchKonachanMenuItem = new javax.swing.JMenuItem();
         switchYandereMenuItem = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
         exitMenuItem = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        showVersionMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Moebooru Viewer");
@@ -229,6 +260,15 @@ public class ListPostFrame extends javax.swing.JFrame{
         scrollPane.setViewportView(postsPanel);
 
         jMenu1.setText("功能");
+        jMenu1.setMinimumSize(new java.awt.Dimension(200, 0));
+
+        jumpPageMenuItem.setText("跳至页数");
+        jumpPageMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jumpPageMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jumpPageMenuItem);
 
         searchTagMenuItem.setText("搜索tag");
         searchTagMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -237,6 +277,14 @@ public class ListPostFrame extends javax.swing.JFrame{
             }
         });
         jMenu1.add(searchTagMenuItem);
+
+        searchHistoryMenu.setText("搜索历史");
+        searchHistoryMenu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                searchHistoryMenuMouseEntered(evt);
+            }
+        });
+        jMenu1.add(searchHistoryMenu);
 
         jMenu2.setText("切换站点");
 
@@ -257,6 +305,7 @@ public class ListPostFrame extends javax.swing.JFrame{
         jMenu2.add(switchYandereMenuItem);
 
         jMenu1.add(jMenu2);
+        jMenu1.add(jSeparator1);
 
         exitMenuItem.setText("退出");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -267,6 +316,18 @@ public class ListPostFrame extends javax.swing.JFrame{
         jMenu1.add(exitMenuItem);
 
         jMenuBar1.add(jMenu1);
+
+        jMenu3.setText("帮助");
+
+        showVersionMenuItem.setText("版本");
+        showVersionMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showVersionMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu3.add(showVersionMenuItem);
+
+        jMenuBar1.add(jMenu3);
 
         setJMenuBar(jMenuBar1);
 
@@ -285,9 +346,10 @@ public class ListPostFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     private void searchTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchTagMenuItemActionPerformed
-        String tags = JOptionPane.showInputDialog(this, "输入要搜索的tag，用空格分隔");
-        if (tags != null){
-            moebooruViewer.listPosts(tags.split(" "));
+        String keywords = JOptionPane.showInputDialog(this, "输入要搜索的tag，用空格分隔");
+        if (keywords != null){
+            moebooruViewer.listPosts(keywords.split(" "));
+            userSetting.addSearchHistory(keywords);
         }
     }//GEN-LAST:event_searchTagMenuItemActionPerformed
 
@@ -303,15 +365,47 @@ public class ListPostFrame extends javax.swing.JFrame{
         moebooruViewer.exit();
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
+    private void jumpPageMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jumpPageMenuItemActionPerformed
+        String pageString = JOptionPane.showInputDialog(this, "输入要跳转到的页数");
+        if (pageString != null){
+            pageCount = Integer.parseInt(pageString);
+            clear();
+            loadImages();
+        }
+    }//GEN-LAST:event_jumpPageMenuItemActionPerformed
+
+    private void searchHistoryMenuMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchHistoryMenuMouseEntered
+        searchHistoryMenu.removeAll();
+        userSetting.getSearchHistories().forEach(keywords -> {
+            JMenuItem menuItem = new JMenuItem(keywords);
+            menuItem.addActionListener(event -> moebooruViewer.listPosts(keywords.split(" ")));
+            searchHistoryMenu.add(menuItem);
+        });
+    }//GEN-LAST:event_searchHistoryMenuMouseEntered
+
+    private void showVersionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showVersionMenuItemActionPerformed
+        String version;
+        try{
+            version = IOUtils.toString(getClass().getResourceAsStream("/io/github/azige/moebooruviewer/version"));
+            JOptionPane.showMessageDialog(this, version);
+        }catch (IOException ex){
+            logger.error("无法读取版本标记", ex);
+        }
+    }//GEN-LAST:event_showVersionMenuItemActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JMenuItem jumpPageMenuItem;
     private javax.swing.JPanel postsPanel;
     private javax.swing.JScrollPane scrollPane;
+    private javax.swing.JMenu searchHistoryMenu;
     private javax.swing.JMenuItem searchTagMenuItem;
+    private javax.swing.JMenuItem showVersionMenuItem;
     private javax.swing.JMenuItem switchKonachanMenuItem;
     private javax.swing.JMenuItem switchYandereMenuItem;
     // End of variables declaration//GEN-END:variables

@@ -124,12 +124,13 @@ public class ShowPostFrame extends javax.swing.JFrame{
                 public void loading(LoadingEvent event){
                     int index = tabbedPane.indexOfComponent(event.getSource());
                     tabbedPane.setTitleAt(index, post.getId() + "*");
+                    tabbedPane.setIconAt(index, null);
                 }
 
                 @Override
                 public void done(LoadingEvent event){
                     int index = tabbedPane.indexOfComponent(event.getSource());
-                    if (tabbedPane.getIconAt(index) == null){
+                    if (tabbedPane.getIconAt(index) == null && event.getSource().getImage() != null){
                         tabbedPane.setIconAt(index, new ImageIcon(MoebooruViewer.resizeImage(event.getSource().getImage(), 32, 32)));
                     }
                     tabbedPane.setTitleAt(index, String.valueOf(post.getId()));

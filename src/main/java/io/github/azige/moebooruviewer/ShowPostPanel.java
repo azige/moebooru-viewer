@@ -8,6 +8,15 @@ import java.awt.Cursor;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.RenderedImage;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.EventObject;
@@ -16,10 +25,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +59,14 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private MoebooruAPI mapi;
     @Autowired
     private NetIO netIO;
+    @Autowired
+    private UserSetting userSetting;
 
     private static final Map<Integer, Color> tagColorMap;
     private Post presentingPost;
     private Image image;
     private List<LoadingListener> loadingListeners = new ArrayList<>();
+    private JFileChooser fileChooser = new JFileChooser();
 
     static{
         tagColorMap = new HashMap<>();
@@ -99,6 +116,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         tagPanel = new javax.swing.JPanel();
         toolPanel = new javax.swing.JPanel();
         downloadLabel = new javax.swing.JLabel();
+        downloadToLabel = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -128,15 +146,35 @@ public class ShowPostPanel extends javax.swing.JPanel{
         });
         toolPanel.add(downloadLabel);
 
+        downloadToLabel.setForeground(new java.awt.Color(255, 255, 255));
+        downloadToLabel.setText("下载大图至...");
+        downloadToLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        downloadToLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                downloadToLabelMouseClicked(evt);
+            }
+        });
+        toolPanel.add(downloadToLabel);
+
         add(toolPanel, java.awt.BorderLayout.LINE_END);
     }// </editor-fold>//GEN-END:initComponents
 
     private void downloadLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadLabelMouseClicked
+        boolean force;
+
+        if (SwingUtilities.isLeftMouseButton(evt)){
+            force = false;
+        }else if (SwingUtilities.isRightMouseButton(evt)){
+            force = true;
+        }else{
+            return;
+        }
+
         postLabel.setIcon(null);
         postLabel.setText("加载中……");
         image = null;
         executor.execute(() -> {
-            image = netIO.loadOrigin(presentingPost);
+            image = netIO.loadOrigin(presentingPost, force);
             SwingUtilities.invokeLater(() -> {
                 if (image != null){
                     showImage();
@@ -146,6 +184,44 @@ public class ShowPostPanel extends javax.swing.JPanel{
             });
         });
     }//GEN-LAST:event_downloadLabelMouseClicked
+
+    private void downloadToLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadToLabelMouseClicked
+        if (downloadToLabel.isEnabled()){
+            if (userSetting.getLastSaveDir() != null){
+                fileChooser.setCurrentDirectory(userSetting.getLastSaveDir());
+            }
+            File originFileCache = netIO.getOriginFileCache(presentingPost);
+            fileChooser.setSelectedFile(originFileCache);
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+                userSetting.setLastSaveDir(fileChooser.getCurrentDirectory());
+                File saveFile = fileChooser.getSelectedFile();
+                if (originFileCache.exists()){
+                    try{
+                        FileUtils.copyFile(originFileCache, saveFile);
+                        downloadToLabel.setEnabled(false);
+                        downloadToLabel.setText("下载完成");
+                    }catch (IOException ex){
+                        logger.warn("复制文件异常");
+                        downloadToLabel.setText("复制文件失败");
+                    }
+                }else{
+                    downloadToLabel.setEnabled(false);
+                    downloadToLabel.setText("下载中……");
+                    executor.execute(() -> {
+                        boolean flag = netIO.cacheFile(saveFile, presentingPost.getOriginUrl(), true);
+                        SwingUtilities.invokeLater(() -> {
+                            if (flag){
+                                downloadToLabel.setText("下载完成");
+                            }else{
+                                downloadToLabel.setText("下载文件失败");
+                                downloadToLabel.setEnabled(true);
+                            }
+                        });
+                    });
+                }
+            }
+        }
+    }//GEN-LAST:event_downloadToLabelMouseClicked
 
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
@@ -160,24 +236,19 @@ public class ShowPostPanel extends javax.swing.JPanel{
     }
 
     public void showPost(Post post){
-        postLabel.setIcon(null);
-        postLabel.setText("加载中……");
-        loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
-        image = null;
+
+        loadPost(post, false);
 
         presentingPost = post;
-        executor.execute(() -> {
-            image = netIO.loadSample(post);
-            SwingUtilities.invokeLater(() -> {
-                if (presentingPost == post){
-                    if (image != null){
-                        showImage();
-                    }else{
-                        postLabel.setText("加载失败！");
-                    }
-                    loadingListeners.forEach(l -> l.done(new LoadingEvent()));
+
+        postLabel.addMouseListener(new MouseAdapter(){
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if (SwingUtilities.isRightMouseButton(e)){
+                    loadPost(presentingPost, true);
                 }
-            });
+            }
         });
 
         tagPanel.removeAll();
@@ -208,6 +279,28 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }
     }
 
+    private void loadPost(Post post, boolean force){
+        postLabel.setIcon(null);
+        postLabel.setText("加载中……");
+        loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
+        image = null;
+
+        executor.execute(() -> {
+            Image image = netIO.loadSample(post, force);
+            SwingUtilities.invokeLater(() -> {
+                this.image = image;
+                if (presentingPost == post){
+                    if (image != null){
+                        showImage();
+                    }else{
+                        postLabel.setText("加载失败！");
+                    }
+                    loadingListeners.forEach(l -> l.done(new LoadingEvent()));
+                }
+            });
+        });
+    }
+
     private void showImage(){
         postLabel.setText("");
         resizeImage();
@@ -225,6 +318,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel downloadLabel;
+    private javax.swing.JLabel downloadToLabel;
     private javax.swing.JLabel postLabel;
     private javax.swing.JPanel tagPanel;
     private javax.swing.JPanel toolPanel;

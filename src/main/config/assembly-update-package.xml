@@ -7,7 +7,7 @@
     <formats>
         <format>zip</format>
     </formats>
-    <includeBaseDirectory>false</includeBaseDirectory>
+    <baseDirectory>MoebooruViewer</baseDirectory>
     <files>
         <file>
             <source>target/${project.build.finalName}.jar</source>

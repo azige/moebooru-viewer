@@ -4,6 +4,7 @@
 package io.github.azige.moebooruviewer;
 
 import java.awt.Image;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -132,18 +133,22 @@ public class NetIO{
         return loadImage(sampleFile, post.getSampleUrl(), force);
     }
 
+    public File getOriginFileCache(Post post){
+        try{
+            return new File(originDir, URLDecoder.decode(post.getOriginUrl().replaceFirst(".*/", ""), "UTF-8"));
+        }catch (UnsupportedEncodingException ex){
+            logger.error("URL编码异常", ex);
+            return null;
+        }
+    }
+
     public Image loadOrigin(Post post){
         return loadOrigin(post, false);
     }
 
     public Image loadOrigin(Post post, boolean force){
-        try{
-            File originFile = new File(originDir, URLDecoder.decode(post.getOriginUrl().replaceFirst(".*/", ""), "UTF-8"));
-            return loadImage(originFile, post.getOriginUrl(), force);
-        }catch (UnsupportedEncodingException ex){
-            logger.error("编码异常", ex);
-            return null;
-        }
+        File originFile = getOriginFileCache(post);
+        return loadImage(originFile, post.getOriginUrl(), force);
     }
 
     public Image loadImage(File localFile, String url, boolean force){
@@ -178,7 +183,7 @@ public class NetIO{
         synchronized (locker){
             if (!localFile.exists() || force){
                 Object flag = retry(() -> {
-                    try (InputStream input = openStream(new URL(url)); OutputStream output = new FileOutputStream(localFile)){
+                    try (InputStream input = openStream(new URL(url)); OutputStream output = new BufferedOutputStream(new FileOutputStream(localFile))){
                         IOUtils.copy(input, output);
                         logger.info("downloaded: {}", localFile);
                         return new Object();

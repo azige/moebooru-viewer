@@ -44,6 +44,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <versioningTag>${project.version} - ${maven.build.timestamp}</versioningTag>
     </properties>
     <build>
         <plugins>
@@ -81,6 +82,15 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>io/github/azige/moebooruviewer/version</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
     <profiles>
         <profile>
