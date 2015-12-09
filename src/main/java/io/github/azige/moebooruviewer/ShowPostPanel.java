@@ -5,6 +5,7 @@ package io.github.azige.moebooruviewer;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -29,6 +30,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
@@ -253,7 +255,13 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
         tagPanel.removeAll();
         for (String tagName : post.getTags().split(" ")){
-            JLabel label = new JLabel(tagName);
+            JLabel label = new JLabel();
+            if (tagName.length() > 20){
+                label.setText(tagName.substring(0, 17) + "...");
+                label.setToolTipText(tagName);
+            }else{
+                label.setText(tagName);
+            }
             label.setForeground(Color.WHITE);
             label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             label.addMouseListener(new MouseAdapter(){

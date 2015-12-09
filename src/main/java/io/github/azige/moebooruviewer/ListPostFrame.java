@@ -127,7 +127,6 @@ public class ListPostFrame extends javax.swing.JFrame{
     protected void processWindowEvent(WindowEvent e){
         super.processWindowEvent(e);
         if (e.getID() == WindowEvent.WINDOW_CLOSING || e.getID() == WindowEvent.WINDOW_CLOSED){
-            postFrame.dispose();
         }
     }
 
@@ -187,8 +186,7 @@ public class ListPostFrame extends javax.swing.JFrame{
                         @Override
                         public void mouseClicked(MouseEvent e){
                             if (SwingUtilities.isLeftMouseButton(e)){
-                                postFrame.setVisible(true);
-                                postFrame.showPost(post);
+                                showPost(post);
                             }else if (SwingUtilities.isRightMouseButton(e)){
                                 label.setIcon(null);
                                 label.setText("加载中……");
@@ -221,6 +219,11 @@ public class ListPostFrame extends javax.swing.JFrame{
         repaint();
     }
 
+    private void showPost(Post post){
+        postFrame.setVisible(true);
+        postFrame.showPost(post);
+    }
+
     /**
      * This method is called from within the constructor to
      * initialize the form.
@@ -235,6 +238,7 @@ public class ListPostFrame extends javax.swing.JFrame{
         postsPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        openPostMenuItem = new javax.swing.JMenuItem();
         jumpPageMenuItem = new javax.swing.JMenuItem();
         searchTagMenuItem = new javax.swing.JMenuItem();
         searchHistoryMenu = new javax.swing.JMenu();
@@ -261,6 +265,14 @@ public class ListPostFrame extends javax.swing.JFrame{
 
         jMenu1.setText("功能");
         jMenu1.setMinimumSize(new java.awt.Dimension(200, 0));
+
+        openPostMenuItem.setText("按id检索Post");
+        openPostMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openPostMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu1.add(openPostMenuItem);
 
         jumpPageMenuItem.setText("跳至页数");
         jumpPageMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -393,6 +405,22 @@ public class ListPostFrame extends javax.swing.JFrame{
         }
     }//GEN-LAST:event_showVersionMenuItemActionPerformed
 
+    private void openPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openPostMenuItemActionPerformed
+        String id = JOptionPane.showInputDialog(this, "输入要检索的id");
+        if (id != null){
+            executor.execute(() -> {
+                List<Post> searchPosts = netIO.retry(() -> mapi.listPosts(1, 1, "id:" + id));
+                SwingUtilities.invokeLater(() -> {
+                    if (!searchPosts.isEmpty()){
+                        showPost(searchPosts.get(0));
+                    }else{
+                        JOptionPane.showMessageDialog(this, "检索的id不存在！");
+                    }
+                });
+            });
+        }
+    }//GEN-LAST:event_openPostMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu jMenu1;
@@ -401,6 +429,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem jumpPageMenuItem;
+    private javax.swing.JMenuItem openPostMenuItem;
     private javax.swing.JPanel postsPanel;
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JMenu searchHistoryMenu;

@@ -12,6 +12,14 @@
             </Property>
           </Properties>
           <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="openPostMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="&#x6309;id&#x68c0;&#x7d22;Post"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="openPostMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="jumpPageMenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="&#x8df3;&#x81f3;&#x9875;&#x6570;"/>

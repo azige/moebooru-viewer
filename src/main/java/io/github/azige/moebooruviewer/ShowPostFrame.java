@@ -11,6 +11,7 @@ import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -21,9 +22,7 @@ import io.github.azige.moebooruviewer.ShowPostPanel.LoadingListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ShowPostFrame extends javax.swing.JFrame{
 
     private static final Logger logger = LoggerFactory.getLogger(ShowPostFrame.class);
@@ -93,6 +91,12 @@ public class ShowPostFrame extends javax.swing.JFrame{
         }
     }
 
+    @PreDestroy
+    @Override
+    public void dispose(){
+        super.dispose();
+    }
+
     /**
      * This method is called from within the constructor to
      * initialize the form.
@@ -137,7 +141,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
                 }
 
             });
-            tabbedPane.addTab(null, null, postPanel, post.getTags());
+            tabbedPane.addTab(null, null, postPanel);
             postPanelMap.put(post.getId(), postPanel);
             postPanel.showPost(post);
         }
