@@ -3,12 +3,12 @@
  */
 package io.github.azige.moebooruviewer;
 
-import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +20,11 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.bind.JAXB;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,7 +50,7 @@ public class MoebooruViewer{
     private static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
 
     private static final String TAG_FILE_NAME = "tags.json";
-    private static final String SETTING_FILE_NAME = "settings.xml";
+    private static final String SETTING_FILE_NAME = "user-settings.xml";
     private static final int THREAD_POOL_SIZE = 10;
 
     @Autowired
@@ -84,23 +88,12 @@ public class MoebooruViewer{
         }
     }
 
-    public static Image resizeImage(Image image, double maxWidth, double maxHeight){
-        double limitRatio = maxWidth / maxHeight;
-        double width = image.getWidth(null);
-        double height = image.getHeight(null);
-        double ratio = width / height;
-        if (ratio > limitRatio){
-            width = maxWidth;
-            height = maxWidth / ratio;
-        }else{
-            height = maxHeight;
-            width = maxHeight * ratio;
-        }
-        return image.getScaledInstance((int)width, (int)height, Image.SCALE_SMOOTH);
-    }
-
     public void listPosts(String... tags){
         ListPostFrame listPostFrame = context.getBean(ListPostFrame.class);
+        if (userSetting.isSafeMode()){
+            tags = Arrays.copyOf(tags, tags.length + 1);
+            tags[tags.length - 1] = "rating:s";
+        }
         listPostFrame.setTags(tags);
         listPostFrame.setVisible(true);
         listPostFrame.loadImages();
@@ -161,23 +154,6 @@ public class MoebooruViewer{
      * @param args the command line arguments
      */
     public static void main(String args[]){
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try{
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()){
-                if ("Nimbus".equals(info.getName())){
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex){
-            java.util.logging.Logger.getLogger(ListPostFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
         UserSetting setting = null;
         File settingFile = new File(SETTING_FILE_NAME);
         if (settingFile.exists()){
@@ -188,8 +164,27 @@ public class MoebooruViewer{
             }
         }
         if (setting == null){
-            setting = new UserSetting();
-            setting.setSiteConfig(SiteConfig.KONACHAN);
+            setting = UserSetting.createDefaultSetting();
+        }
+        if (setting.getLookAndFeel() != null){
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()){
+                if (setting.getLookAndFeel().equals(info.getName())){
+                    try{
+                        UIManager.setLookAndFeel(info.getClassName());
+                        break;
+                    }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
+                        logger.warn("设置 L&F 时出错", ex);
+                    }
+                }
+            }
+        }else{
+            try{
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                LookAndFeel laf = UIManager.getLookAndFeel();
+                setting.setLookAndFeel(laf.getName());
+            }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
+                logger.warn("设置 L&F 时出错", ex);
+            }
         }
 
         ApplicationContext context = buildContext(setting);

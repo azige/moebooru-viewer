@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,7 @@ public class NetIO{
     private SiteConfig siteConfig;
 
     private int maxRetryCount = 5;
+    private File cacheDir;
     private File previewDir;
     private File sampleDir;
     private File originDir;
@@ -68,13 +70,13 @@ public class NetIO{
 
     @PostConstruct
     private void init(){
-        File cacheDir = new File(siteConfig.getName());
+        cacheDir = new File(siteConfig.getName());
         previewDir = new File(cacheDir, PREVIEW_DIR_NAME);
         sampleDir = new File(cacheDir, SAMPLE_DIR_NAME);
         originDir = new File(cacheDir, ORIGIN_DIR_NAME);
-        Stream.of(previewDir, sampleDir, originDir)
-            .filter(dir -> !dir.exists())
-            .forEach(File::mkdirs);
+//        Stream.of(previewDir, sampleDir, originDir)
+//            .filter(dir -> !dir.exists())
+//            .forEach(File::mkdirs);
     }
 
     public <S> S retry(SupplierThrowsIOException<S> supplier){
@@ -123,17 +125,21 @@ public class NetIO{
         return loadImage(previewFile, post.getPreviewUrl(), force);
     }
 
+    public File getSampleFile(Post post){
+        return new File(sampleDir, post.getId() + ".jpg");
+    }
+
     public Image loadSample(Post post){
         return loadSample(post, false);
     }
 
     public Image loadSample(Post post, boolean force){
         long id = post.getId();
-        File sampleFile = new File(sampleDir, id + ".jpg");
+        File sampleFile = getSampleFile(post);
         return loadImage(sampleFile, post.getSampleUrl(), force);
     }
 
-    public File getOriginFileCache(Post post){
+    public File getOriginFile(Post post){
         try{
             return new File(originDir, URLDecoder.decode(post.getOriginUrl().replaceFirst(".*/", ""), "UTF-8"));
         }catch (UnsupportedEncodingException ex){
@@ -147,7 +153,7 @@ public class NetIO{
     }
 
     public Image loadOrigin(Post post, boolean force){
-        File originFile = getOriginFileCache(post);
+        File originFile = getOriginFile(post);
         return loadImage(originFile, post.getOriginUrl(), force);
     }
 
@@ -167,10 +173,25 @@ public class NetIO{
         return null;
     }
 
+    /**
+     * 下载一个文件。如果本地已有则不下载。
+     *
+     * @param localFile 下载到的本地文件
+     * @param url 要下载的资源 url
+     * @return 下载成功则为 true，否则为 flase
+     */
     public boolean cacheFile(File localFile, String url){
         return cacheFile(localFile, url, false);
     }
 
+    /**
+     * 下载一个文件。如果本地已有则不下载。可以指定强制下载
+     *
+     * @param localFile 下载到的本地文件
+     * @param url 要下载的资源 url
+     * @param force 若为 true，则即使文件已存在也重新下载
+     * @return 下载成功则为 true，否则为 flase
+     */
     public boolean cacheFile(File localFile, String url, boolean force){
         Object locker;
         synchronized (fileLockerMap){
@@ -182,6 +203,10 @@ public class NetIO{
         }
         synchronized (locker){
             if (!localFile.exists() || force){
+                File dir = localFile.getParentFile();
+                if (!dir.exists()){
+                    dir.mkdirs();
+                }
                 Object flag = retry(() -> {
                     try (InputStream input = openStream(new URL(url)); OutputStream output = new BufferedOutputStream(new FileOutputStream(localFile))){
                         IOUtils.copy(input, output);
@@ -198,6 +223,16 @@ public class NetIO{
             }else{
                 return true;
             }
+        }
+    }
+
+    public boolean cleanCache(){
+        try{
+            FileUtils.deleteDirectory(cacheDir);
+            return true;
+        }catch (IOException ex){
+            logger.warn("删除缓存目录失败！", ex);
+            return false;
         }
     }
 }

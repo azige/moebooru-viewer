@@ -5,19 +5,14 @@ package io.github.azige.moebooruviewer;
 
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
+import java.awt.Desktop;
 import java.awt.Image;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.RenderedImage;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.EventObject;
@@ -25,17 +20,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
-import javax.imageio.ImageIO;
+import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
+import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,18 +58,22 @@ public class ShowPostPanel extends javax.swing.JPanel{
     @Autowired
     private UserSetting userSetting;
 
-    private static final Map<Integer, Color> tagColorMap;
+    private static final Map<Integer, Color> TAG_COLOR_MAP;
+    private static final Color COLOR_SUCCESS = Color.decode("0x339900");
+    private static final Color COLOR_FAIL = Color.decode("0xCC0000");
+
     private Post presentingPost;
     private Image image;
     private List<LoadingListener> loadingListeners = new ArrayList<>();
     private JFileChooser fileChooser = new JFileChooser();
+    private boolean needResizeImage = true;
 
     static{
-        tagColorMap = new HashMap<>();
-        tagColorMap.put(Tag.TYPE_GENERAL, Color.decode("0xEE8887"));
-        tagColorMap.put(Tag.TYPE_ARTIST, Color.decode("0xCCCC00"));
-        tagColorMap.put(Tag.TYPE_COPYRIGHT, Color.decode("0xDD00DD"));
-        tagColorMap.put(Tag.TYPE_CHARACTER, Color.decode("0x00AA00"));
+        TAG_COLOR_MAP = new HashMap<>();
+        TAG_COLOR_MAP.put(Tag.TYPE_GENERAL, Color.decode("0xEE8887"));
+        TAG_COLOR_MAP.put(Tag.TYPE_ARTIST, Color.decode("0xCCCC00"));
+        TAG_COLOR_MAP.put(Tag.TYPE_COPYRIGHT, Color.decode("0xDD00DD"));
+        TAG_COLOR_MAP.put(Tag.TYPE_CHARACTER, Color.decode("0x00AA00"));
     }
 
     public class LoadingEvent extends EventObject{
@@ -102,6 +100,120 @@ public class ShowPostPanel extends javax.swing.JPanel{
      */
     public ShowPostPanel(){
         initComponents();
+        addComponentListener(new ComponentAdapter(){
+
+            @Override
+            public void componentResized(ComponentEvent e){
+                needResizeImage = true;
+            }
+
+        });
+    }
+
+    private void initToolPanel(){
+        userSetting.getSaveLocations().forEach(sl -> {
+            samplePanel.add(createDownloadLabel(sl, netIO.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
+            jpegPanel.add(createDownloadLabel(sl, null, presentingPost.getJpegUrl()));
+            originPanel.add(createDownloadLabel(sl, netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
+        });
+        samplePanel.add(createDownloadToLabel(netIO.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
+        jpegPanel.add(createDownloadToLabel(null, presentingPost.getSampleUrl()));
+        originPanel.add(createDownloadToLabel(netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
+    }
+
+    private JLabel createDownloadLabel(SaveLocation sl, File localFile, String url){
+        JLabel label = new JLabel("下载至" + sl.getName());
+        label.setForeground(Color.WHITE);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter(){
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if (SwingUtilities.isLeftMouseButton(e)){
+                    downloadFile(label, localFile, url, new File(sl.getLocation(), Utils.getFileNameFromUrl(url)));
+                }
+            }
+
+        });
+        return label;
+    }
+
+    private JLabel createDownloadToLabel(File localFile, String url){
+        JLabel label = new JLabel("下载至...");
+        label.setForeground(Color.WHITE);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter(){
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if (SwingUtilities.isLeftMouseButton(e)){
+                    downloadFileTo(label, localFile, url);
+                }
+            }
+
+        });
+        return label;
+    }
+
+    private void makeLabelDone(JLabel label, File file){
+        label.setEnabled(true);
+        label.setText("下载完成");
+        label.setForeground(COLOR_SUCCESS);
+        Stream.of(label.getMouseListeners())
+            .forEach(label::removeMouseListener);
+        label.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseClicked(MouseEvent e){
+                try{
+                    Desktop.getDesktop().browse(file.getParentFile().toURI());
+                }catch (IOException ex){
+                    logger.warn("打开浏览器出错", ex);
+                }
+            }
+        });
+    }
+
+    private void downloadFile(JLabel label, File localFile, String url, File saveFile){
+        label.setEnabled(false);
+        if (localFile != null && localFile.exists()){
+            try{
+                FileUtils.copyFile(localFile, saveFile);
+                makeLabelDone(label, saveFile);
+            }catch (IOException ex){
+                logger.warn("复制文件异常", ex);
+                label.setText("复制文件失败");
+                label.setForeground(COLOR_FAIL);
+                label.setEnabled(true);
+            }
+        }else{
+            label.setText("下载中……");
+            label.setForeground(Color.WHITE);
+            executor.execute(() -> {
+                boolean flag = netIO.cacheFile(saveFile, url, true);
+                SwingUtilities.invokeLater(() -> {
+                    if (flag){
+                        makeLabelDone(label, saveFile);
+                    }else{
+                        label.setText("下载文件失败");
+                        label.setForeground(COLOR_FAIL);
+                        label.setEnabled(true);
+                    }
+                });
+            });
+        }
+    }
+
+    private void downloadFileTo(JLabel label, File localFile, String url){
+        if (label.isEnabled()){
+            if (userSetting.getLastSaveDir() != null){
+                fileChooser.setCurrentDirectory(userSetting.getLastSaveDir());
+            }
+            fileChooser.setSelectedFile(new File(Utils.getFileNameFromUrl(url)));
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+                userSetting.setLastSaveDir(fileChooser.getCurrentDirectory());
+                downloadFile(label, localFile, url, fileChooser.getSelectedFile());
+            }
+        }
     }
 
     /**
@@ -118,7 +230,9 @@ public class ShowPostPanel extends javax.swing.JPanel{
         tagPanel = new javax.swing.JPanel();
         toolPanel = new javax.swing.JPanel();
         downloadLabel = new javax.swing.JLabel();
-        downloadToLabel = new javax.swing.JLabel();
+        samplePanel = new javax.swing.JPanel();
+        jpegPanel = new javax.swing.JPanel();
+        originPanel = new javax.swing.JPanel();
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -139,7 +253,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         toolPanel.setLayout(new javax.swing.BoxLayout(toolPanel, javax.swing.BoxLayout.Y_AXIS));
 
         downloadLabel.setForeground(new java.awt.Color(255, 255, 255));
-        downloadLabel.setText("下载大图");
+        downloadLabel.setText("加载大图");
         downloadLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         downloadLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -148,15 +262,23 @@ public class ShowPostPanel extends javax.swing.JPanel{
         });
         toolPanel.add(downloadLabel);
 
-        downloadToLabel.setForeground(new java.awt.Color(255, 255, 255));
-        downloadToLabel.setText("下载大图至...");
-        downloadToLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        downloadToLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                downloadToLabelMouseClicked(evt);
-            }
-        });
-        toolPanel.add(downloadToLabel);
+        samplePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "预览图", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        samplePanel.setAlignmentX(0.0F);
+        samplePanel.setOpaque(false);
+        samplePanel.setLayout(new javax.swing.BoxLayout(samplePanel, javax.swing.BoxLayout.Y_AXIS));
+        toolPanel.add(samplePanel);
+
+        jpegPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "JPEG", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        jpegPanel.setAlignmentX(0.0F);
+        jpegPanel.setOpaque(false);
+        jpegPanel.setLayout(new javax.swing.BoxLayout(jpegPanel, javax.swing.BoxLayout.Y_AXIS));
+        toolPanel.add(jpegPanel);
+
+        originPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "原图", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        originPanel.setAlignmentX(0.0F);
+        originPanel.setOpaque(false);
+        originPanel.setLayout(new javax.swing.BoxLayout(originPanel, javax.swing.BoxLayout.Y_AXIS));
+        toolPanel.add(originPanel);
 
         add(toolPanel, java.awt.BorderLayout.LINE_END);
     }// </editor-fold>//GEN-END:initComponents
@@ -187,44 +309,6 @@ public class ShowPostPanel extends javax.swing.JPanel{
         });
     }//GEN-LAST:event_downloadLabelMouseClicked
 
-    private void downloadToLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadToLabelMouseClicked
-        if (downloadToLabel.isEnabled()){
-            if (userSetting.getLastSaveDir() != null){
-                fileChooser.setCurrentDirectory(userSetting.getLastSaveDir());
-            }
-            File originFileCache = netIO.getOriginFileCache(presentingPost);
-            fileChooser.setSelectedFile(originFileCache);
-            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
-                userSetting.setLastSaveDir(fileChooser.getCurrentDirectory());
-                File saveFile = fileChooser.getSelectedFile();
-                if (originFileCache.exists()){
-                    try{
-                        FileUtils.copyFile(originFileCache, saveFile);
-                        downloadToLabel.setEnabled(false);
-                        downloadToLabel.setText("下载完成");
-                    }catch (IOException ex){
-                        logger.warn("复制文件异常");
-                        downloadToLabel.setText("复制文件失败");
-                    }
-                }else{
-                    downloadToLabel.setEnabled(false);
-                    downloadToLabel.setText("下载中……");
-                    executor.execute(() -> {
-                        boolean flag = netIO.cacheFile(saveFile, presentingPost.getOriginUrl(), true);
-                        SwingUtilities.invokeLater(() -> {
-                            if (flag){
-                                downloadToLabel.setText("下载完成");
-                            }else{
-                                downloadToLabel.setText("下载文件失败");
-                                downloadToLabel.setEnabled(true);
-                            }
-                        });
-                    });
-                }
-            }
-        }
-    }//GEN-LAST:event_downloadToLabelMouseClicked
-
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
     }
@@ -235,6 +319,10 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
     public Image getImage(){
         return image;
+    }
+
+    public boolean isNeedResizeImage(){
+        return needResizeImage;
     }
 
     public void showPost(Post post){
@@ -253,15 +341,23 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
         });
 
+        final int lineLimit = 25;
         tagPanel.removeAll();
         for (String tagName : post.getTags().split(" ")){
             JLabel label = new JLabel();
-            if (tagName.length() > 20){
-                label.setText(tagName.substring(0, 17) + "...");
-                label.setToolTipText(tagName);
+            if (tagName.length() > lineLimit){
+                StringBuilder sb = new StringBuilder("<html>");
+                String str = tagName;
+                while (str.length() > lineLimit){
+                    sb.append(str.substring(0, lineLimit)).append("<br/>");
+                    str = str.substring(lineLimit);
+                }
+                sb.append(str).append("</html>");
+                label.setText(sb.toString());
             }else{
                 label.setText(tagName);
             }
+
             label.setForeground(Color.WHITE);
             label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             label.addMouseListener(new MouseAdapter(){
@@ -277,7 +373,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 Tag tag = netIO.retry(() -> mapi.findTag(tagName));
                 if (tag != null){
                     SwingUtilities.invokeLater(() -> {
-                        Color color = tagColorMap.get(tag.getType());
+                        Color color = TAG_COLOR_MAP.get(tag.getType());
                         if (color != null){
                             label.setForeground(color);
                         }
@@ -285,6 +381,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 }
             });
         }
+
+        initToolPanel();
     }
 
     private void loadPost(Post post, boolean force){
@@ -321,13 +419,16 @@ public class ShowPostPanel extends javax.swing.JPanel{
     }
 
     private void resizeImage(){
-        postLabel.setIcon(new ImageIcon(MoebooruViewer.resizeImage(image, postLabel.getWidth(), postLabel.getHeight())));
+        postLabel.setIcon(new ImageIcon(Utils.resizeImage(image, postLabel.getWidth(), postLabel.getHeight())));
+        needResizeImage = false;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel downloadLabel;
-    private javax.swing.JLabel downloadToLabel;
+    private javax.swing.JPanel jpegPanel;
+    private javax.swing.JPanel originPanel;
     private javax.swing.JLabel postLabel;
+    private javax.swing.JPanel samplePanel;
     private javax.swing.JPanel tagPanel;
     private javax.swing.JPanel toolPanel;
     // End of variables declaration//GEN-END:variables

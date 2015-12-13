@@ -21,6 +21,8 @@ public class Post{
     private String sampleUrl;
     @JsonProperty("file_url")
     private String originUrl;
+    @JsonProperty("jpeg_url")
+    private String jpegUrl;
     private String tags;
 
     public Post(){
@@ -64,6 +66,14 @@ public class Post{
 
     public void setOriginUrl(String originUrl){
         this.originUrl = originUrl;
+    }
+
+    public String getJpegUrl(){
+        return jpegUrl;
+    }
+
+    public void setJpegUrl(String jpegUrl){
+        this.jpegUrl = jpegUrl;
     }
 
     @Override

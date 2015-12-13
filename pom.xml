@@ -5,13 +5,6 @@
     <artifactId>moebooru-viewer</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <repositories>
-        <repository>
-            <id>unknown-jars-temp-repo</id>
-            <name>A temporary repository created by NetBeans for libraries and jars it could not identify. Please replace the dependencies in this repository with correct ones and delete this repository.</name>
-            <url>file:${project.basedir}/lib</url>
-        </repository>
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -44,7 +37,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <versioningTag>${project.version} - ${maven.build.timestamp}</versioningTag>
+        <versioningTag>${project.version} build ${maven.build.timestamp}</versioningTag>
     </properties>
     <build>
         <plugins>

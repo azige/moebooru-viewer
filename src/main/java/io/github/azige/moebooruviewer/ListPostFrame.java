@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -32,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +50,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     private static final int SAMPLE_WIDTH = 150;
     private static final int SAMPLE_HEIGHT = 100;
 
+    @Autowired
+    private ApplicationContext context;
     @Autowired
     private SiteConfig siteConfig;
     @Autowired
@@ -66,6 +71,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private Set<Post> posts = new HashSet<>();
     private final JLabel loadMoreLabel;
     private String[] tags = {};
+    private int pageSize;
 
     /**
      * Creates new form MainFrame
@@ -112,6 +118,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     @PostConstruct
     private void init(){
         setTitle(siteConfig.getName() + " Viewer");
+        pageSize = userSetting.getPageSize();
     }
 
     public String[] getTags(){
@@ -146,7 +153,7 @@ public class ListPostFrame extends javax.swing.JFrame{
         loadMoreLabel.setEnabled(false);
         refreshTitle();
         executor.execute(() -> {
-            List<Post> postList = netIO.retry(() -> mapi.listPosts(pageCount, tags));
+            List<Post> postList = netIO.retry(() -> mapi.listPosts(pageCount, pageSize, tags));
             SwingUtilities.invokeLater(() -> {
                 pageCount++;
                 postsPanel.remove(loadMoreLabel);
@@ -172,7 +179,7 @@ public class ListPostFrame extends javax.swing.JFrame{
                                 if (image != null){
                                     label.setText("");
                                     Dimension size = label.getPreferredSize();
-                                    label.setIcon(new ImageIcon(MoebooruViewer.resizeImage(image, size.getWidth(), size.getHeight())));
+                                    label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
                                 }else{
                                     label.setText("加载失败！");
                                 }
@@ -247,13 +254,15 @@ public class ListPostFrame extends javax.swing.JFrame{
         switchYandereMenuItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         exitMenuItem = new javax.swing.JMenuItem();
+        jMenu4 = new javax.swing.JMenu();
+        configMenuItem = new javax.swing.JMenuItem();
+        cleanCacheMenuItem = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         showVersionMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Moebooru Viewer");
         setMinimumSize(new java.awt.Dimension(850, 650));
-        setPreferredSize(new java.awt.Dimension(850, 650));
 
         scrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -329,6 +338,26 @@ public class ListPostFrame extends javax.swing.JFrame{
 
         jMenuBar1.add(jMenu1);
 
+        jMenu4.setText("设置");
+
+        configMenuItem.setText("设置");
+        configMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                configMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu4.add(configMenuItem);
+
+        cleanCacheMenuItem.setText("清空缓存");
+        cleanCacheMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cleanCacheMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu4.add(cleanCacheMenuItem);
+
+        jMenuBar1.add(jMenu4);
+
         jMenu3.setText("帮助");
 
         showVersionMenuItem.setText("版本");
@@ -347,11 +376,11 @@ public class ListPostFrame extends javax.swing.JFrame{
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
+            .addComponent(scrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 850, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 579, Short.MAX_VALUE)
+            .addComponent(scrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 629, Short.MAX_VALUE)
         );
 
         pack();
@@ -408,24 +437,52 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void openPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openPostMenuItemActionPerformed
         String id = JOptionPane.showInputDialog(this, "输入要检索的id");
         if (id != null){
+
+            JOptionPane optionPane = new JOptionPane("检索中：" + id, JOptionPane.INFORMATION_MESSAGE);
+            JButton button = new JButton("取消");
+            optionPane.setOptions(new Object[]{button});
+            JDialog dialog = optionPane.createDialog(this, "正在检索……");
+            button.addActionListener(event -> dialog.dispose());
+            dialog.setModal(false);
+            dialog.setVisible(true);
             executor.execute(() -> {
                 List<Post> searchPosts = netIO.retry(() -> mapi.listPosts(1, 1, "id:" + id));
                 SwingUtilities.invokeLater(() -> {
-                    if (!searchPosts.isEmpty()){
-                        showPost(searchPosts.get(0));
-                    }else{
-                        JOptionPane.showMessageDialog(this, "检索的id不存在！");
+                    if (dialog.isDisplayable()){
+                        dialog.dispose();
+                        if (!searchPosts.isEmpty()){
+                            showPost(searchPosts.get(0));
+                        }else{
+                            JOptionPane.showMessageDialog(this, "检索的id不存在！");
+                        }
                     }
                 });
             });
         }
     }//GEN-LAST:event_openPostMenuItemActionPerformed
 
+    private void configMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_configMenuItemActionPerformed
+        ConfigDialog configDialog = context.getBean(ConfigDialog.class);
+        configDialog.setLocationRelativeTo(this);
+        configDialog.setVisible(true);
+    }//GEN-LAST:event_configMenuItemActionPerformed
+
+    private void cleanCacheMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanCacheMenuItemActionPerformed
+        if (netIO.cleanCache()){
+            JOptionPane.showMessageDialog(this, "删除成功！");
+        }else{
+            JOptionPane.showMessageDialog(this, "删除失败！");
+        }
+    }//GEN-LAST:event_cleanCacheMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem cleanCacheMenuItem;
+    private javax.swing.JMenuItem configMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem jumpPageMenuItem;

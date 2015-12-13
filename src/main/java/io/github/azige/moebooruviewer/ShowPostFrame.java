@@ -49,7 +49,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
             @Override
             public void stateChanged(ChangeEvent e){
                 ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
-                if (postPanel != null){
+                if (postPanel != null && postPanel.isNeedResizeImage()){
                     postPanel.updateImage();
                 }
             }
@@ -135,7 +135,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
                 public void done(LoadingEvent event){
                     int index = tabbedPane.indexOfComponent(event.getSource());
                     if (tabbedPane.getIconAt(index) == null && event.getSource().getImage() != null){
-                        tabbedPane.setIconAt(index, new ImageIcon(MoebooruViewer.resizeImage(event.getSource().getImage(), 32, 32)));
+                        tabbedPane.setIconAt(index, new ImageIcon(Utils.resizeImage(event.getSource().getImage(), 32, 32)));
                     }
                     tabbedPane.setTitleAt(index, String.valueOf(post.getId()));
                 }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +56,7 @@ public class MoebooruAPI{
     }
 
     public List<Post> listPosts(int page, int limit, String... tags) throws IOException{
+        List<String> tagList = new ArrayList<>(Arrays.asList(tags));
         String parameters = String.format("page=%d&limit=%d&tags=%s", page, limit,
             Stream.of(tags).reduce((s1, s2) -> s1 + "+" + s2).orElse("")
         );
