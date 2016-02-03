@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.azige.moebooruviewer</groupId>
     <artifactId>moebooru-viewer</artifactId>
-    <version>0.1</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -77,10 +77,10 @@
         </plugins>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>io/github/azige/moebooruviewer/version</include>
-                </includes>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/build-resources</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
@@ -91,7 +91,7 @@
             <build>
                 <resources>
                     <resource>
-                        <directory>src/release/resources</directory>
+                        <directory>${basedir}/src/release/resources</directory>
                     </resource>
                 </resources>
             </build>
