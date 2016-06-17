@@ -66,7 +66,6 @@ public class UserSetting{
             new SaveLocation("暂存", new File("recycler").getAbsoluteFile())
         );
         setting.siteConfig = SiteConfig.KONACHAN;
-        setting.LookAndFeel = "Nimbus";
         setting.pageSize = 20;
         return setting;
     }
