@@ -24,6 +24,7 @@ public class Post{
     @JsonProperty("jpeg_url")
     private String jpegUrl;
     private String tags;
+    private String source;
 
     public Post(){
     }
@@ -74,6 +75,14 @@ public class Post{
 
     public void setJpegUrl(String jpegUrl){
         this.jpegUrl = jpegUrl;
+    }
+
+    public String getSource(){
+        return source;
+    }
+
+    public void setSource(String source){
+        this.source = source;
     }
 
     @Override

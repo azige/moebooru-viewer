@@ -13,6 +13,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.EventObject;
@@ -20,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -119,6 +125,27 @@ public class ShowPostPanel extends javax.swing.JPanel{
         samplePanel.add(createDownloadToLabel(netIO.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
         jpegPanel.add(createDownloadToLabel(null, presentingPost.getSampleUrl()));
         originPanel.add(createDownloadToLabel(netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
+
+        String source = presentingPost.getSource();
+        if (source != null && !source.equals("")){
+            try{
+
+                // 转换 pixiv 来源的 URL
+                if (Pattern.compile("i.?\\.pixiv\\.net").matcher(source).find()){
+                    Matcher matcher = Pattern.compile("(\\d+)_p").matcher(source);
+                    if (matcher.find()){
+                        source = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
+                    }
+                }
+
+                sourcePanel.add(createLinkLabel(new URL(source)));
+            }catch (MalformedURLException ex){
+                logger.info("URL格式错误", ex);
+                sourcePanel.setVisible(false);
+            }
+        }else{
+            sourcePanel.setVisible(false);
+        }
     }
 
     private JLabel createDownloadLabel(SaveLocation sl, File localFile, String url){
@@ -151,6 +178,26 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 }
             }
 
+        });
+        return label;
+    }
+
+    private JLabel createLinkLabel(URL url){
+        JLabel label = new JLabel(url.getHost());
+        label.setForeground(Color.WHITE);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter(){
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if (SwingUtilities.isLeftMouseButton(e)){
+                    try{
+                        Desktop.getDesktop().browse(url.toURI());
+                    }catch (IOException | URISyntaxException ex){
+                        logger.warn("无法浏览URL：" + url, ex);
+                    }
+                }
+            }
         });
         return label;
     }
@@ -233,6 +280,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         samplePanel = new javax.swing.JPanel();
         jpegPanel = new javax.swing.JPanel();
         originPanel = new javax.swing.JPanel();
+        sourcePanel = new javax.swing.JPanel();
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -279,6 +327,11 @@ public class ShowPostPanel extends javax.swing.JPanel{
         originPanel.setOpaque(false);
         originPanel.setLayout(new javax.swing.BoxLayout(originPanel, javax.swing.BoxLayout.Y_AXIS));
         toolPanel.add(originPanel);
+
+        sourcePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "来源", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        sourcePanel.setOpaque(false);
+        sourcePanel.setLayout(new javax.swing.BoxLayout(sourcePanel, javax.swing.BoxLayout.Y_AXIS));
+        toolPanel.add(sourcePanel);
 
         add(toolPanel, java.awt.BorderLayout.LINE_END);
     }// </editor-fold>//GEN-END:initComponents
@@ -429,6 +482,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel originPanel;
     private javax.swing.JLabel postLabel;
     private javax.swing.JPanel samplePanel;
+    private javax.swing.JPanel sourcePanel;
     private javax.swing.JPanel tagPanel;
     private javax.swing.JPanel toolPanel;
     // End of variables declaration//GEN-END:variables
