@@ -25,6 +25,10 @@ public class Post{
     private String jpegUrl;
     private String tags;
     private String source;
+    @JsonProperty("parent_id")
+    private Integer parentId;
+    @JsonProperty("has_children")
+    private boolean hasChildren;
 
     public Post(){
     }
@@ -83,6 +87,22 @@ public class Post{
 
     public void setSource(String source){
         this.source = source;
+    }
+
+    public Integer getParentId(){
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId){
+        this.parentId = parentId;
+    }
+
+    public boolean isHasChildren(){
+        return hasChildren;
+    }
+
+    public void setHasChildren(boolean hasChildren){
+        this.hasChildren = hasChildren;
     }
 
     @Override

@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -138,13 +136,54 @@ public class ShowPostPanel extends javax.swing.JPanel{
                     }
                 }
 
-                sourcePanel.add(createLinkLabel(new URL(source)));
+                URL url = new URL(source);
+                sourceLinkLabel.setText(url.getHost());
+                sourceLinkLabel.addMouseListener(new MouseAdapter(){
+
+                    @Override
+                    public void mouseClicked(MouseEvent e){
+                        if (SwingUtilities.isLeftMouseButton(e)){
+                            try{
+                                Desktop.getDesktop().browse(url.toURI());
+                            }catch (IOException | URISyntaxException ex){
+                                logger.warn("无法浏览URL：" + url, ex);
+                            }
+                        }
+                    }
+                });
             }catch (MalformedURLException ex){
                 logger.info("URL格式错误", ex);
                 sourcePanel.setVisible(false);
             }
         }else{
             sourcePanel.setVisible(false);
+        }
+    }
+
+    private void initAssociatePanels(){
+        if (presentingPost.getParentId() != null){
+            int parentId = presentingPost.getParentId();
+            parentLinkLabel.addMouseListener(new MouseAdapter(){
+
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    moebooruViewer.showPostById(parentId);
+                }
+            });
+        }else{
+            parentPanel.setVisible(false);
+        }
+
+        if (presentingPost.isHasChildren()){
+            childrenLinkLabel.addMouseListener(new MouseAdapter(){
+
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    moebooruViewer.listPosts("parent:" + presentingPost.getId());
+                }
+            });
+        }else{
+            childrenPanel.setVisible(false);
         }
     }
 
@@ -178,26 +217,6 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 }
             }
 
-        });
-        return label;
-    }
-
-    private JLabel createLinkLabel(URL url){
-        JLabel label = new JLabel(url.getHost());
-        label.setForeground(Color.WHITE);
-        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        label.addMouseListener(new MouseAdapter(){
-
-            @Override
-            public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isLeftMouseButton(e)){
-                    try{
-                        Desktop.getDesktop().browse(url.toURI());
-                    }catch (IOException | URISyntaxException ex){
-                        logger.warn("无法浏览URL：" + url, ex);
-                    }
-                }
-            }
         });
         return label;
     }
@@ -273,42 +292,27 @@ public class ShowPostPanel extends javax.swing.JPanel{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        postLabel = new javax.swing.JLabel();
-        tagPanel = new javax.swing.JPanel();
         toolPanel = new javax.swing.JPanel();
-        downloadLabel = new javax.swing.JLabel();
         samplePanel = new javax.swing.JPanel();
         jpegPanel = new javax.swing.JPanel();
         originPanel = new javax.swing.JPanel();
         sourcePanel = new javax.swing.JPanel();
+        sourceLinkLabel = new javax.swing.JLabel();
+        centerPanel = new javax.swing.JPanel();
+        postLabel = new javax.swing.JLabel();
+        infoPanel = new javax.swing.JPanel();
+        parentPanel = new javax.swing.JPanel();
+        parentLinkLabel = new javax.swing.JLabel();
+        childrenPanel = new javax.swing.JPanel();
+        childrenLinkLabel = new javax.swing.JLabel();
+        tagPanel = new javax.swing.JPanel();
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
 
-        postLabel.setForeground(new java.awt.Color(255, 255, 255));
-        postLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        postLabel.setText("加载中……");
-        postLabel.setPreferredSize(new java.awt.Dimension(800, 600));
-        add(postLabel, java.awt.BorderLayout.CENTER);
-
-        tagPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        tagPanel.setOpaque(false);
-        tagPanel.setLayout(new javax.swing.BoxLayout(tagPanel, javax.swing.BoxLayout.Y_AXIS));
-        add(tagPanel, java.awt.BorderLayout.LINE_START);
-
         toolPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         toolPanel.setOpaque(false);
         toolPanel.setLayout(new javax.swing.BoxLayout(toolPanel, javax.swing.BoxLayout.Y_AXIS));
-
-        downloadLabel.setForeground(new java.awt.Color(255, 255, 255));
-        downloadLabel.setText("加载大图");
-        downloadLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        downloadLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                downloadLabelMouseClicked(evt);
-            }
-        });
-        toolPanel.add(downloadLabel);
 
         samplePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "预览图", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
         samplePanel.setAlignmentX(0.0F);
@@ -331,36 +335,59 @@ public class ShowPostPanel extends javax.swing.JPanel{
         sourcePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "来源", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
         sourcePanel.setOpaque(false);
         sourcePanel.setLayout(new javax.swing.BoxLayout(sourcePanel, javax.swing.BoxLayout.Y_AXIS));
+
+        sourceLinkLabel.setForeground(new java.awt.Color(255, 255, 255));
+        sourceLinkLabel.setText("来源链接");
+        sourceLinkLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        sourcePanel.add(sourceLinkLabel);
+
         toolPanel.add(sourcePanel);
 
         add(toolPanel, java.awt.BorderLayout.LINE_END);
-    }// </editor-fold>//GEN-END:initComponents
 
-    private void downloadLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadLabelMouseClicked
-        boolean force;
+        centerPanel.setOpaque(false);
+        centerPanel.setLayout(new java.awt.BorderLayout());
 
-        if (SwingUtilities.isLeftMouseButton(evt)){
-            force = false;
-        }else if (SwingUtilities.isRightMouseButton(evt)){
-            force = true;
-        }else{
-            return;
-        }
-
-        postLabel.setIcon(null);
+        postLabel.setForeground(new java.awt.Color(255, 255, 255));
+        postLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         postLabel.setText("加载中……");
-        image = null;
-        executor.execute(() -> {
-            image = netIO.loadOrigin(presentingPost, force);
-            SwingUtilities.invokeLater(() -> {
-                if (image != null){
-                    showImage();
-                }else{
-                    postLabel.setText("加载失败！");
-                }
-            });
-        });
-    }//GEN-LAST:event_downloadLabelMouseClicked
+        postLabel.setPreferredSize(new java.awt.Dimension(800, 600));
+        centerPanel.add(postLabel, java.awt.BorderLayout.CENTER);
+
+        add(centerPanel, java.awt.BorderLayout.CENTER);
+
+        infoPanel.setOpaque(false);
+        infoPanel.setLayout(new javax.swing.BoxLayout(infoPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        parentPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "父投稿", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        parentPanel.setOpaque(false);
+        parentPanel.setLayout(new javax.swing.BoxLayout(parentPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        parentLinkLabel.setForeground(new java.awt.Color(255, 255, 255));
+        parentLinkLabel.setText("点击查看");
+        parentLinkLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        parentPanel.add(parentLinkLabel);
+
+        infoPanel.add(parentPanel);
+
+        childrenPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "子投稿", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        childrenPanel.setOpaque(false);
+        childrenPanel.setLayout(new javax.swing.BoxLayout(childrenPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        childrenLinkLabel.setForeground(new java.awt.Color(255, 255, 255));
+        childrenLinkLabel.setText("点击搜索");
+        childrenLinkLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        childrenPanel.add(childrenLinkLabel);
+
+        infoPanel.add(childrenPanel);
+
+        tagPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "标签", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
+        tagPanel.setOpaque(false);
+        tagPanel.setLayout(new javax.swing.BoxLayout(tagPanel, javax.swing.BoxLayout.Y_AXIS));
+        infoPanel.add(tagPanel);
+
+        add(infoPanel, java.awt.BorderLayout.LINE_START);
+    }// </editor-fold>//GEN-END:initComponents
 
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
@@ -436,6 +463,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }
 
         initToolPanel();
+
+        initAssociatePanels();
     }
 
     private void loadPost(Post post, boolean force){
@@ -477,11 +506,17 @@ public class ShowPostPanel extends javax.swing.JPanel{
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel downloadLabel;
+    private javax.swing.JPanel centerPanel;
+    private javax.swing.JLabel childrenLinkLabel;
+    private javax.swing.JPanel childrenPanel;
+    private javax.swing.JPanel infoPanel;
     private javax.swing.JPanel jpegPanel;
     private javax.swing.JPanel originPanel;
+    private javax.swing.JLabel parentLinkLabel;
+    private javax.swing.JPanel parentPanel;
     private javax.swing.JLabel postLabel;
     private javax.swing.JPanel samplePanel;
+    private javax.swing.JLabel sourceLinkLabel;
     private javax.swing.JPanel sourcePanel;
     private javax.swing.JPanel tagPanel;
     private javax.swing.JPanel toolPanel;
