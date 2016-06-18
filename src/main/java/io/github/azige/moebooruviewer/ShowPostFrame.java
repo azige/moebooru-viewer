@@ -13,7 +13,6 @@ import java.util.Map;
 
 import javax.annotation.PreDestroy;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -57,14 +56,18 @@ public class ShowPostFrame extends javax.swing.JFrame{
         tabbedPane.addMouseListener(new MouseAdapter(){
 
             @Override
-            public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isRightMouseButton(e)){
-                    ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
-                    tabbedPane.remove(postPanel);
-                    postPanelMap.values().remove(postPanel);
-                    if (postPanelMap.isEmpty()){
-                        setVisible(false);
-                    }
+            public void mousePressed(MouseEvent e){
+                popupMenu(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e){
+                popupMenu(e);
+            }
+
+            private void popupMenu(MouseEvent e){
+                if (e.isPopupTrigger()){
+                    postPanePopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
 
@@ -107,7 +110,17 @@ public class ShowPostFrame extends javax.swing.JFrame{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        postPanePopupMenu = new javax.swing.JPopupMenu();
+        closeMenuItem = new javax.swing.JMenuItem();
         tabbedPane = new javax.swing.JTabbedPane();
+
+        closeMenuItem.setText("关闭此投稿页");
+        closeMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeMenuItemActionPerformed(evt);
+            }
+        });
+        postPanePopupMenu.add(closeMenuItem);
 
         setTitle("Post");
         setMinimumSize(new java.awt.Dimension(800, 650));
@@ -117,6 +130,15 @@ public class ShowPostFrame extends javax.swing.JFrame{
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void closeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeMenuItemActionPerformed
+        ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
+        tabbedPane.remove(postPanel);
+        postPanelMap.values().remove(postPanel);
+        if (postPanelMap.isEmpty()){
+            setVisible(false);
+        }
+    }//GEN-LAST:event_closeMenuItemActionPerformed
 
     public void showPost(Post post){
         setVisible(true);
@@ -150,6 +172,8 @@ public class ShowPostFrame extends javax.swing.JFrame{
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem closeMenuItem;
+    private javax.swing.JPopupMenu postPanePopupMenu;
     private javax.swing.JTabbedPane tabbedPane;
     // End of variables declaration//GEN-END:variables
 }
