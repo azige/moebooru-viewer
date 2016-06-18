@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Image;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -73,6 +74,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private List<LoadingListener> loadingListeners = new ArrayList<>();
     private JFileChooser fileChooser = new JFileChooser();
     private boolean needResizeImage = true;
+    private Tag showingPopupMenuTag;
 
     static{
         TAG_COLOR_MAP = new HashMap<>();
@@ -168,9 +170,26 @@ public class ShowPostPanel extends javax.swing.JPanel{
                     label.addMouseListener(new MouseAdapter(){
 
                         @Override
+                        public void mousePressed(MouseEvent e){
+                            popupMenu(e);
+                        }
+
+                        @Override
+                        public void mouseReleased(MouseEvent e){
+                            popupMenu(e);
+                        }
+
+                        @Override
                         public void mouseClicked(MouseEvent e){
                             if (SwingUtilities.isLeftMouseButton(e)){
                                 moebooruViewer.listPosts(tagName);
+                            }
+                        }
+
+                        private void popupMenu(MouseEvent e){
+                            if (e.isPopupTrigger()){
+                                showingPopupMenuTag = tag;
+                                tagPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                             }
                         }
                     });
@@ -178,44 +197,6 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 });
             });
         });
-//        for (String tagName : presentingPost.getTags().split(" ")){
-//            JLabel label = new JLabel();
-//            if (tagName.length() > lineLimit){
-//                StringBuilder sb = new StringBuilder("<html>");
-//                String str = tagName;
-//                while (str.length() > lineLimit){
-//                    sb.append(str.substring(0, lineLimit)).append("<br/>");
-//                    str = str.substring(lineLimit);
-//                }
-//                sb.append(str).append("</html>");
-//                label.setText(sb.toString());
-//            }else{
-//                label.setText(tagName);
-//            }
-//
-//            label.setForeground(Color.WHITE);
-//            label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-//            label.addMouseListener(new MouseAdapter(){
-//
-//                @Override
-//                public void mouseClicked(MouseEvent e){
-//                    moebooruViewer.listPosts(tagName);
-//                }
-//
-//            });
-//            tagPanel.add(label);
-//            executor.execute(() -> {
-//                Tag tag = netIO.retry(() -> mapi.findTag(tagName));
-//                if (tag != null){
-//                    SwingUtilities.invokeLater(() -> {
-//                        Color color = TAG_COLOR_MAP.get(tag.getType());
-//                        if (color != null){
-//                            label.setForeground(color);
-//                        }
-//                    });
-//                }
-//            });
-//        }
     }
 
     private void initToolPanel(){
@@ -396,6 +377,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        tagPopupMenu = new javax.swing.JPopupMenu();
+        copyMenuItem = new javax.swing.JMenuItem();
         toolPanel = new javax.swing.JPanel();
         samplePanel = new javax.swing.JPanel();
         jpegPanel = new javax.swing.JPanel();
@@ -411,6 +394,14 @@ public class ShowPostPanel extends javax.swing.JPanel{
         childrenLinkLabel = new javax.swing.JLabel();
         tagPanel = new javax.swing.JPanel();
         tagLoadingLabel = new javax.swing.JLabel();
+
+        copyMenuItem.setText("复制");
+        copyMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyMenuItemActionPerformed(evt);
+            }
+        });
+        tagPopupMenu.add(copyMenuItem);
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -500,6 +491,12 @@ public class ShowPostPanel extends javax.swing.JPanel{
         add(infoPanel, java.awt.BorderLayout.LINE_START);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void copyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyMenuItemActionPerformed
+        if (showingPopupMenuTag != null){
+            getToolkit().getSystemClipboard().setContents(new StringSelection(showingPopupMenuTag.getName()), null);
+        }
+    }//GEN-LAST:event_copyMenuItemActionPerformed
+
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
     }
@@ -581,6 +578,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel centerPanel;
     private javax.swing.JLabel childrenLinkLabel;
     private javax.swing.JPanel childrenPanel;
+    private javax.swing.JMenuItem copyMenuItem;
     private javax.swing.JPanel infoPanel;
     private javax.swing.JPanel jpegPanel;
     private javax.swing.JPanel originPanel;
@@ -592,6 +590,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel sourcePanel;
     private javax.swing.JLabel tagLoadingLabel;
     private javax.swing.JPanel tagPanel;
+    private javax.swing.JPopupMenu tagPopupMenu;
     private javax.swing.JPanel toolPanel;
     // End of variables declaration//GEN-END:variables
 }
