@@ -379,6 +379,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
         tagPopupMenu = new javax.swing.JPopupMenu();
         copyMenuItem = new javax.swing.JMenuItem();
+        postPopupMenu = new javax.swing.JPopupMenu();
+        reloadMenuItem = new javax.swing.JMenuItem();
         toolPanel = new javax.swing.JPanel();
         samplePanel = new javax.swing.JPanel();
         jpegPanel = new javax.swing.JPanel();
@@ -402,6 +404,14 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
         });
         tagPopupMenu.add(copyMenuItem);
+
+        reloadMenuItem.setText("重新加载");
+        reloadMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reloadMenuItemActionPerformed(evt);
+            }
+        });
+        postPopupMenu.add(reloadMenuItem);
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -497,6 +507,10 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }
     }//GEN-LAST:event_copyMenuItemActionPerformed
 
+    private void reloadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadMenuItemActionPerformed
+        loadPost(presentingPost, true);
+    }//GEN-LAST:event_reloadMenuItemActionPerformed
+
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
     }
@@ -522,9 +536,18 @@ public class ShowPostPanel extends javax.swing.JPanel{
         postLabel.addMouseListener(new MouseAdapter(){
 
             @Override
-            public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isRightMouseButton(e)){
-                    loadPost(presentingPost, true);
+            public void mousePressed(MouseEvent e){
+                popupMenu(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e){
+                popupMenu(e);
+            }
+
+            private void popupMenu(MouseEvent e){
+                if (e.isPopupTrigger()){
+                    postPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
         });
@@ -585,6 +608,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JLabel parentLinkLabel;
     private javax.swing.JPanel parentPanel;
     private javax.swing.JLabel postLabel;
+    private javax.swing.JPopupMenu postPopupMenu;
+    private javax.swing.JMenuItem reloadMenuItem;
     private javax.swing.JPanel samplePanel;
     private javax.swing.JLabel sourceLinkLabel;
     private javax.swing.JPanel sourcePanel;

@@ -72,6 +72,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     private final JLabel loadMoreLabel;
     private String[] tags = {};
     private int pageSize;
+    private Post showingPopupMenuPost;
+    private JLabel showingPopupMenuLabel;
 
     /**
      * Creates new form MainFrame
@@ -167,10 +169,12 @@ public class ListPostFrame extends javax.swing.JFrame{
                     label.setHorizontalAlignment(JLabel.CENTER);
                     label.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
                     label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    label.setToolTipText(String.valueOf(post.getId()));
                     if (netIO.getSampleFile(post).exists()){
                         label.setBorder(new LineBorder(CACHED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
                     }
 
+                    // TODO: 整理这段代码
                     class LoadImageTask implements Runnable{
 
                         boolean force = false;
@@ -198,15 +202,26 @@ public class ListPostFrame extends javax.swing.JFrame{
                             if (SwingUtilities.isLeftMouseButton(e)){
                                 moebooruViewer.showPost(post);
                                 label.setBorder(new LineBorder(CLICKED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
-                            }else if (SwingUtilities.isRightMouseButton(e)){
-                                label.setIcon(null);
-                                label.setText("加载中……");
-                                LoadImageTask task = new LoadImageTask();
-                                task.force = true;
-                                executor.execute(task);
                             }
                         }
 
+                        @Override
+                        public void mousePressed(MouseEvent e){
+                            popupMenu(e);
+                        }
+
+                        @Override
+                        public void mouseReleased(MouseEvent e){
+                            popupMenu(e);
+                        }
+
+                        private void popupMenu(MouseEvent e){
+                            if (e.isPopupTrigger()){
+                                showingPopupMenuLabel = label;
+                                showingPopupMenuPost = post;
+                                postPreviewPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                            }
+                        }
                     });
                     postsPanel.add(label);
                     LoadImageTask task = new LoadImageTask();
@@ -239,6 +254,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        postPreviewPopupMenu = new javax.swing.JPopupMenu();
+        reloadMenuItem = new javax.swing.JMenuItem();
         scrollPane = new javax.swing.JScrollPane();
         postsPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -257,6 +274,14 @@ public class ListPostFrame extends javax.swing.JFrame{
         cleanCacheMenuItem = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         showVersionMenuItem = new javax.swing.JMenuItem();
+
+        reloadMenuItem.setText("重新加载");
+        reloadMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reloadMenuItemActionPerformed(evt);
+            }
+        });
+        postPreviewPopupMenu.add(reloadMenuItem);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Moebooru Viewer");
@@ -457,6 +482,26 @@ public class ListPostFrame extends javax.swing.JFrame{
         }
     }//GEN-LAST:event_cleanCacheMenuItemActionPerformed
 
+    private void reloadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadMenuItemActionPerformed
+        showingPopupMenuLabel.setIcon(null);
+        showingPopupMenuLabel.setText("加载中……");
+
+        JLabel label = showingPopupMenuLabel;
+        Post post = showingPopupMenuPost;
+        executor.execute(() -> {
+            Image image = netIO.loadPreview(post, true);
+            SwingUtilities.invokeLater(() -> {
+                if (image != null){
+                    label.setText("");
+                    Dimension size = label.getPreferredSize();
+                    label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
+                }else{
+                    label.setText("加载失败！");
+                }
+            });
+        });
+    }//GEN-LAST:event_reloadMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem cleanCacheMenuItem;
     private javax.swing.JMenuItem configMenuItem;
@@ -469,7 +514,9 @@ public class ListPostFrame extends javax.swing.JFrame{
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem jumpPageMenuItem;
     private javax.swing.JMenuItem openPostMenuItem;
+    private javax.swing.JPopupMenu postPreviewPopupMenu;
     private javax.swing.JPanel postsPanel;
+    private javax.swing.JMenuItem reloadMenuItem;
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JMenu searchHistoryMenu;
     private javax.swing.JMenuItem searchTagMenuItem;
