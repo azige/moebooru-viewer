@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.ImageIcon;
@@ -65,6 +66,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private static final Map<Integer, Color> TAG_COLOR_MAP;
     private static final Color COLOR_SUCCESS = Color.decode("0x339900");
     private static final Color COLOR_FAIL = Color.decode("0xCC0000");
+    private static final Color COLOR_UNKNOWN_TAG_TYPE = Color.decode("0xFF2020");
 
     private Post presentingPost;
     private Image image;
@@ -112,6 +114,108 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
 
         });
+    }
+
+    private void initTagPanel(){
+        final int lineLimit = 25;
+        executor.execute(() -> {
+            List<Tag> tags = new ArrayList<>();
+            List<String> resolveFailedTagNames = new ArrayList<>();
+            for (String tagName : presentingPost.getTags().split(" ")){
+                Tag tag = netIO.retry(() -> mapi.findTag(tagName));
+                if (tag != null){
+                    tags.add(tag);
+                }else{
+                    resolveFailedTagNames.add(tagName);
+                }
+            }
+            Map<Integer, List<Tag>> typeToTagsMap = tags.stream()
+                .collect(Collectors.groupingBy(Tag::getType));
+
+            List<Tag> sortedTags = new ArrayList<>();
+            for (int type : new int[]{Tag.TYPE_ARTIST, Tag.TYPE_COPYRIGHT, Tag.TYPE_CHARACTER, Tag.TYPE_GENERAL}){
+                if (typeToTagsMap.containsKey(type)){
+                    sortedTags.addAll(typeToTagsMap.get(type));
+                    typeToTagsMap.remove(type);
+                }
+            }
+            typeToTagsMap.values().forEach(sortedTags::addAll);
+
+            SwingUtilities.invokeLater(() -> {
+                tagPanel.removeAll();
+                sortedTags.forEach(tag -> {
+                    String tagName = tag.getName();
+                    String viewTagName = tagName.replaceAll("_", " ");
+                    if (viewTagName.length() > lineLimit){
+                        StringBuilder targetBuilder = new StringBuilder("<html>");
+                        StringBuilder sourceBuffer = new StringBuilder(viewTagName);
+                        while (sourceBuffer.length() > lineLimit){
+                            targetBuilder.append(sourceBuffer, 0, lineLimit).append("<br/>");
+                            sourceBuffer.delete(0, lineLimit);
+                        }
+                        targetBuilder.append(sourceBuffer).append("</html>");
+                        viewTagName = targetBuilder.toString();
+                    }
+
+                    JLabel label = new JLabel(viewTagName);
+                    label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    Color color = TAG_COLOR_MAP.get(tag.getType());
+                    if (color != null){
+                        label.setForeground(color);
+                    }else{
+                        label.setForeground(COLOR_UNKNOWN_TAG_TYPE);
+                    }
+                    label.addMouseListener(new MouseAdapter(){
+
+                        @Override
+                        public void mouseClicked(MouseEvent e){
+                            if (SwingUtilities.isLeftMouseButton(e)){
+                                moebooruViewer.listPosts(tagName);
+                            }
+                        }
+                    });
+                    tagPanel.add(label);
+                });
+            });
+        });
+//        for (String tagName : presentingPost.getTags().split(" ")){
+//            JLabel label = new JLabel();
+//            if (tagName.length() > lineLimit){
+//                StringBuilder sb = new StringBuilder("<html>");
+//                String str = tagName;
+//                while (str.length() > lineLimit){
+//                    sb.append(str.substring(0, lineLimit)).append("<br/>");
+//                    str = str.substring(lineLimit);
+//                }
+//                sb.append(str).append("</html>");
+//                label.setText(sb.toString());
+//            }else{
+//                label.setText(tagName);
+//            }
+//
+//            label.setForeground(Color.WHITE);
+//            label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+//            label.addMouseListener(new MouseAdapter(){
+//
+//                @Override
+//                public void mouseClicked(MouseEvent e){
+//                    moebooruViewer.listPosts(tagName);
+//                }
+//
+//            });
+//            tagPanel.add(label);
+//            executor.execute(() -> {
+//                Tag tag = netIO.retry(() -> mapi.findTag(tagName));
+//                if (tag != null){
+//                    SwingUtilities.invokeLater(() -> {
+//                        Color color = TAG_COLOR_MAP.get(tag.getType());
+//                        if (color != null){
+//                            label.setForeground(color);
+//                        }
+//                    });
+//                }
+//            });
+//        }
     }
 
     private void initToolPanel(){
@@ -306,6 +410,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         childrenPanel = new javax.swing.JPanel();
         childrenLinkLabel = new javax.swing.JLabel();
         tagPanel = new javax.swing.JPanel();
+        tagLoadingLabel = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -384,6 +489,12 @@ public class ShowPostPanel extends javax.swing.JPanel{
         tagPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "标签", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), new java.awt.Color(255, 255, 255))); // NOI18N
         tagPanel.setOpaque(false);
         tagPanel.setLayout(new javax.swing.BoxLayout(tagPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        tagLoadingLabel.setForeground(new java.awt.Color(255, 255, 255));
+        tagLoadingLabel.setText("加载中……");
+        tagLoadingLabel.setEnabled(false);
+        tagPanel.add(tagLoadingLabel);
+
         infoPanel.add(tagPanel);
 
         add(infoPanel, java.awt.BorderLayout.LINE_START);
@@ -421,46 +532,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
         });
 
-        final int lineLimit = 25;
-        tagPanel.removeAll();
-        for (String tagName : post.getTags().split(" ")){
-            JLabel label = new JLabel();
-            if (tagName.length() > lineLimit){
-                StringBuilder sb = new StringBuilder("<html>");
-                String str = tagName;
-                while (str.length() > lineLimit){
-                    sb.append(str.substring(0, lineLimit)).append("<br/>");
-                    str = str.substring(lineLimit);
-                }
-                sb.append(str).append("</html>");
-                label.setText(sb.toString());
-            }else{
-                label.setText(tagName);
-            }
-
-            label.setForeground(Color.WHITE);
-            label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            label.addMouseListener(new MouseAdapter(){
-
-                @Override
-                public void mouseClicked(MouseEvent e){
-                    moebooruViewer.listPosts(tagName);
-                }
-
-            });
-            tagPanel.add(label);
-            executor.execute(() -> {
-                Tag tag = netIO.retry(() -> mapi.findTag(tagName));
-                if (tag != null){
-                    SwingUtilities.invokeLater(() -> {
-                        Color color = TAG_COLOR_MAP.get(tag.getType());
-                        if (color != null){
-                            label.setForeground(color);
-                        }
-                    });
-                }
-            });
-        }
+        initTagPanel();
 
         initToolPanel();
 
@@ -518,6 +590,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel samplePanel;
     private javax.swing.JLabel sourceLinkLabel;
     private javax.swing.JPanel sourcePanel;
+    private javax.swing.JLabel tagLoadingLabel;
     private javax.swing.JPanel tagPanel;
     private javax.swing.JPanel toolPanel;
     // End of variables declaration//GEN-END:variables
