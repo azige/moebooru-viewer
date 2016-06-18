@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -63,6 +66,10 @@ public class MoebooruViewer{
     private MoebooruAPI mapi;
     @Autowired
     private UserSetting userSetting;
+    @Autowired
+    private NetIO netIO;
+    @Autowired
+    private ShowPostFrame showPostFrame;
 
     private Set<ListPostFrame> listPostFrames = new HashSet<>();
 
@@ -109,6 +116,33 @@ public class MoebooruViewer{
                 }
             }
 
+        });
+    }
+
+    public void showPost(Post post){
+        showPostFrame.showPost(post);
+    }
+
+    public void showPostById(int id){
+        JOptionPane optionPane = new JOptionPane("检索中：" + id, JOptionPane.INFORMATION_MESSAGE);
+        JButton button = new JButton("取消");
+        optionPane.setOptions(new Object[]{button});
+        JDialog dialog = optionPane.createDialog(null, "正在检索……");
+        button.addActionListener(event -> dialog.dispose());
+        dialog.setModal(false);
+        dialog.setVisible(true);
+        executor.execute(() -> {
+            List<Post> searchPosts = netIO.retry(() -> mapi.listPosts(1, 1, "id:" + id));
+            SwingUtilities.invokeLater(() -> {
+                if (dialog.isDisplayable()){
+                    dialog.dispose();
+                    if (!searchPosts.isEmpty()){
+                        showPostFrame.showPost(searchPosts.get(0));
+                    }else{
+                        JOptionPane.showMessageDialog(null, "检索的id不存在！");
+                    }
+                }
+            });
         });
     }
 

@@ -119,6 +119,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     public void showPost(Post post){
+        setVisible(true);
         ShowPostPanel postPanel = postPanelMap.get(post.getId());
         if (postPanel == null){
             postPanel = context.getBean(ShowPostPanel.class);

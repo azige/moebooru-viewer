@@ -22,8 +22,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -66,8 +64,6 @@ public class ListPostFrame extends javax.swing.JFrame{
     private ExecutorService executor;
     @Autowired
     private MoebooruAPI mapi;
-    @Autowired
-    private ShowPostFrame postFrame;
     @Autowired
     private UserSetting userSetting;
 
@@ -200,7 +196,7 @@ public class ListPostFrame extends javax.swing.JFrame{
                         @Override
                         public void mouseClicked(MouseEvent e){
                             if (SwingUtilities.isLeftMouseButton(e)){
-                                showPost(post);
+                                moebooruViewer.showPost(post);
                                 label.setBorder(new LineBorder(CLICKED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
                             }else if (SwingUtilities.isRightMouseButton(e)){
                                 label.setIcon(null);
@@ -232,11 +228,6 @@ public class ListPostFrame extends javax.swing.JFrame{
         postsPanel.removeAll();
         postsPanel.add(loadMoreLabel);
         repaint();
-    }
-
-    private void showPost(Post post){
-        postFrame.setVisible(true);
-        postFrame.showPost(post);
     }
 
     /**
@@ -444,27 +435,11 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void openPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openPostMenuItemActionPerformed
         String id = JOptionPane.showInputDialog(this, "输入要检索的id");
         if (id != null){
-
-            JOptionPane optionPane = new JOptionPane("检索中：" + id, JOptionPane.INFORMATION_MESSAGE);
-            JButton button = new JButton("取消");
-            optionPane.setOptions(new Object[]{button});
-            JDialog dialog = optionPane.createDialog(this, "正在检索……");
-            button.addActionListener(event -> dialog.dispose());
-            dialog.setModal(false);
-            dialog.setVisible(true);
-            executor.execute(() -> {
-                List<Post> searchPosts = netIO.retry(() -> mapi.listPosts(1, 1, "id:" + id));
-                SwingUtilities.invokeLater(() -> {
-                    if (dialog.isDisplayable()){
-                        dialog.dispose();
-                        if (!searchPosts.isEmpty()){
-                            showPost(searchPosts.get(0));
-                        }else{
-                            JOptionPane.showMessageDialog(this, "检索的id不存在！");
-                        }
-                    }
-                });
-            });
+            try{
+                moebooruViewer.showPostById(Integer.parseInt(id));
+            }catch (NumberFormatException ex){
+                JOptionPane.showMessageDialog(null, "输入的id格式有误");
+            }
         }
     }//GEN-LAST:event_openPostMenuItemActionPerformed
 
