@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.filechooser.FileSystemView;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
@@ -63,7 +64,7 @@ public class UserSetting{
             new SaveLocation("壁纸", new File("wallpaper").getAbsoluteFile()),
             new SaveLocation("可公开收藏", new File("collections").getAbsoluteFile()),
             new SaveLocation("非公开收藏", new File(".collections").getAbsoluteFile()),
-            new SaveLocation("暂存", new File("recycler").getAbsoluteFile())
+            new SaveLocation("桌面", FileSystemView.getFileSystemView().getHomeDirectory())
         );
         setting.siteConfig = SiteConfig.KONACHAN;
         setting.pageSize = 20;
@@ -89,9 +90,15 @@ public class UserSetting{
     }
 
     public void addSearchHistory(String keywords){
-        searchHistories.offer(keywords);
+        if (keywords.equals("")){
+            return;
+        }
+        if (searchHistories.contains(keywords)){
+            searchHistories.remove(keywords);
+        }
+        searchHistories.addFirst(keywords);
         if (searchHistories.size() > MAX_HISTORY_COUNT){
-            searchHistories.poll();
+            searchHistories.removeLast();
         }
     }
 
