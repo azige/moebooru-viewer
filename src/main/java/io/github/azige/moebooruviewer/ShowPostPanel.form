@@ -8,12 +8,12 @@
         <Property name="useNullLayout" type="boolean" value="true"/>
       </Layout>
       <SubComponents>
-        <MenuItem class="javax.swing.JMenuItem" name="copyMenuItem">
+        <MenuItem class="javax.swing.JMenuItem" name="copyTagNameMenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="&#x590d;&#x5236;"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyMenuItemActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyTagNameMenuItemActionPerformed"/>
           </Events>
         </MenuItem>
       </SubComponents>
@@ -24,6 +24,14 @@
         <Property name="useNullLayout" type="boolean" value="true"/>
       </Layout>
       <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="copyPostImageMenuItem">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="&#x590d;&#x5236;&#x5230;&#x526a;&#x8d34;&#x677f;"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyPostImageMenuItemActionPerformed"/>
+          </Events>
+        </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="reloadMenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="&#x91cd;&#x65b0;&#x52a0;&#x8f7d;"/>

@@ -378,8 +378,9 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private void initComponents() {
 
         tagPopupMenu = new javax.swing.JPopupMenu();
-        copyMenuItem = new javax.swing.JMenuItem();
+        copyTagNameMenuItem = new javax.swing.JMenuItem();
         postPopupMenu = new javax.swing.JPopupMenu();
+        copyPostImageMenuItem = new javax.swing.JMenuItem();
         reloadMenuItem = new javax.swing.JMenuItem();
         toolPanel = new javax.swing.JPanel();
         samplePanel = new javax.swing.JPanel();
@@ -397,13 +398,21 @@ public class ShowPostPanel extends javax.swing.JPanel{
         tagPanel = new javax.swing.JPanel();
         tagLoadingLabel = new javax.swing.JLabel();
 
-        copyMenuItem.setText("复制");
-        copyMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        copyTagNameMenuItem.setText("复制");
+        copyTagNameMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                copyMenuItemActionPerformed(evt);
+                copyTagNameMenuItemActionPerformed(evt);
             }
         });
-        tagPopupMenu.add(copyMenuItem);
+        tagPopupMenu.add(copyTagNameMenuItem);
+
+        copyPostImageMenuItem.setText("复制到剪贴板");
+        copyPostImageMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyPostImageMenuItemActionPerformed(evt);
+            }
+        });
+        postPopupMenu.add(copyPostImageMenuItem);
 
         reloadMenuItem.setText("重新加载");
         reloadMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -501,15 +510,19 @@ public class ShowPostPanel extends javax.swing.JPanel{
         add(infoPanel, java.awt.BorderLayout.LINE_START);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void copyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyMenuItemActionPerformed
+    private void copyTagNameMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyTagNameMenuItemActionPerformed
         if (showingPopupMenuTag != null){
             getToolkit().getSystemClipboard().setContents(new StringSelection(showingPopupMenuTag.getName()), null);
         }
-    }//GEN-LAST:event_copyMenuItemActionPerformed
+    }//GEN-LAST:event_copyTagNameMenuItemActionPerformed
 
     private void reloadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadMenuItemActionPerformed
         loadPost(presentingPost, true);
     }//GEN-LAST:event_reloadMenuItemActionPerformed
+
+    private void copyPostImageMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyPostImageMenuItemActionPerformed
+        getToolkit().getSystemClipboard().setContents(new ImageSelection(image), null);
+    }//GEN-LAST:event_copyPostImageMenuItemActionPerformed
 
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
@@ -601,7 +614,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel centerPanel;
     private javax.swing.JLabel childrenLinkLabel;
     private javax.swing.JPanel childrenPanel;
-    private javax.swing.JMenuItem copyMenuItem;
+    private javax.swing.JMenuItem copyPostImageMenuItem;
+    private javax.swing.JMenuItem copyTagNameMenuItem;
     private javax.swing.JPanel infoPanel;
     private javax.swing.JPanel jpegPanel;
     private javax.swing.JPanel originPanel;
