@@ -10,8 +10,8 @@
     </formats>
     <files>
         <file>
-            <source>target/${project.build.finalName}.jar</source>
-            <destName>lib/${project.build.finalName}.jar</destName>
+            <source>${project.build.directory}/${project.build.finalName}.jar</source>
+            <destName>lib/${project.artifactId}.jar</destName>
             <outputDirectory>/</outputDirectory>
         </file>
         <file>

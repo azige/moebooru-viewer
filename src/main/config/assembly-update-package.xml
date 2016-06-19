@@ -10,8 +10,8 @@
     <baseDirectory>MoebooruViewer</baseDirectory>
     <files>
         <file>
-            <source>target/${project.build.finalName}.jar</source>
-            <destName>app/${project.build.finalName}.jar</destName>
+            <source>${project.build.directory}/${project.build.finalName}.jar</source>
+            <destName>app/${project.artifactId}.jar</destName>
             <outputDirectory>/</outputDirectory>
         </file>
     </files>
