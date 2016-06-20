@@ -3,7 +3,9 @@
 <Form version="1.3" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
-    <Property name="title" type="java.lang.String" value="&#x8bbe;&#x7f6e;"/>
+    <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+      <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="settings" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+    </Property>
     <Property name="modal" type="boolean" value="true"/>
     <Property name="resizable" type="boolean" value="false"/>
   </Properties>
@@ -75,7 +77,9 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&#x6742;&#x9879;"/>
+            <TitledBorder title="Miscellaneous">
+              <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="miscellaneous" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </TitledBorder>
           </Border>
         </Property>
       </Properties>
@@ -103,8 +107,12 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="safeModeCheckBox">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x5b89;&#x5168;&#x6a21;&#x5f0f;"/>
-            <Property name="toolTipText" type="java.lang.String" value="&#x8fc7;&#x6ee4;&#x51fa;&#x9002;&#x5408;&#x5728;&#x516c;&#x4f17;&#x573a;&#x5408;&#x6216;&#x4e0a;&#x73ed;&#x65f6;&#x95f4;&#x6d4f;&#x89c8;&#x7684;&#x56fe;&#x7247;"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="safe_mode" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="safe_mode_tooltip" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>
@@ -113,7 +121,9 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&#x56fe;&#x7247;&#x4fdd;&#x5b58;&#x4f4d;&#x7f6e;"/>
+            <TitledBorder title="Images save location">
+              <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="images_save_location" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </TitledBorder>
           </Border>
         </Property>
       </Properties>
@@ -153,7 +163,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder title="&#x5206;&#x7c7b;1"/>
+                <TitledBorder title="Category 1">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="category_1" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                </TitledBorder>
               </Border>
             </Property>
           </Properties>
@@ -195,17 +207,23 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel1">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x540d;&#x5b57;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="name" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="saveNameTextField1">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x58c1;&#x7eb8;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="wallpaper" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel2">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x8def;&#x5f84;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="path" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="savePathTextField1">
@@ -215,7 +233,9 @@
             </Component>
             <Component class="javax.swing.JButton" name="choosePathButton1">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x9009;&#x62e9;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="select" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="choosePathButton1ActionPerformed"/>
@@ -227,7 +247,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder title="&#x5206;&#x7c7b;2"/>
+                <TitledBorder title="Category 2">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="category_2" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                </TitledBorder>
               </Border>
             </Property>
           </Properties>
@@ -269,17 +291,23 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel3">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x540d;&#x5b57;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="name" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="saveNameTextField2">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x53ef;&#x516c;&#x5f00;&#x6536;&#x85cf;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="public_collection" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel4">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x8def;&#x5f84;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="path" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="savePathTextField2">
@@ -289,7 +317,9 @@
             </Component>
             <Component class="javax.swing.JButton" name="choosePathButton2">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x9009;&#x62e9;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="select" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="choosePathButton2ActionPerformed"/>
@@ -301,7 +331,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder title="&#x5206;&#x7c7b;4"/>
+                <TitledBorder title="Category 4">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="category_4" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                </TitledBorder>
               </Border>
             </Property>
           </Properties>
@@ -343,17 +375,23 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel9">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x540d;&#x5b57;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="name" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="saveNameTextField4">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x6682;&#x5b58;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="recycler" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel10">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x8def;&#x5f84;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="path" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="savePathTextField4">
@@ -363,7 +401,9 @@
             </Component>
             <Component class="javax.swing.JButton" name="choosePathButton4">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x9009;&#x62e9;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="select" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="choosePathButton4ActionPerformed"/>
@@ -375,7 +415,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder title="&#x5206;&#x7c7b;3"/>
+                <TitledBorder title="Category 3">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="category_3" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                </TitledBorder>
               </Border>
             </Property>
           </Properties>
@@ -417,17 +459,23 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel11">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x540d;&#x5b57;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="name" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="saveNameTextField3">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x975e;&#x516c;&#x5f00;&#x6536;&#x85cf;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="private_collection" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel12">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x8def;&#x5f84;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="path" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="savePathTextField3">
@@ -437,7 +485,9 @@
             </Component>
             <Component class="javax.swing.JButton" name="choosePathButton3">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x9009;&#x62e9;"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="select" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+                </Property>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="choosePathButton3ActionPerformed"/>
@@ -449,7 +499,9 @@
     </Container>
     <Component class="javax.swing.JButton" name="confirmButton">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x786e;&#x8ba4;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="confirm" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="confirmButtonActionPerformed"/>
@@ -457,7 +509,9 @@
     </Component>
     <Component class="javax.swing.JButton" name="cancelButton">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x53d6;&#x6d88;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="cancel" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cancelButtonActionPerformed"/>
@@ -467,7 +521,9 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&#x5916;&#x89c2;"/>
+            <TitledBorder title="Look and feel">
+              <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="look_and_feel" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </TitledBorder>
           </Border>
         </Property>
       </Properties>
@@ -481,7 +537,7 @@
                       <Component id="lafComboBox" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="36" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -509,7 +565,9 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel5">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x9700;&#x8981;&#x91cd;&#x542f;"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="restart_required" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>
@@ -518,7 +576,9 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&#x5206;&#x9875;&#x8bbe;&#x7f6e;"/>
+            <TitledBorder title="Settings">
+              <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Settings.properties" key="settings" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </TitledBorder>
           </Border>
         </Property>
       </Properties>
@@ -531,7 +591,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
                           <Component id="pageSizeTextField" max="32767" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
@@ -561,7 +621,9 @@
       <SubComponents>
         <Component class="javax.swing.JLabel" name="jLabel6">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x9875;&#x5927;&#x5c0f;"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="items_per_page" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="pageSizeTextField">
@@ -571,7 +633,9 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x4e0a;&#x9650;&#x662f; 100"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="io/github/azige/moebooruviewer/Settings.properties" key="upper_limit_100" replaceFormat="messages.getString(&quot;{key}&quot;)"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>

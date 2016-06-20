@@ -61,10 +61,10 @@ public class UserSetting{
     public static UserSetting createDefaultSetting(){
         UserSetting setting = new UserSetting();
         setting.saveLocations = Arrays.asList(
-            new SaveLocation("壁纸", new File("wallpaper").getAbsoluteFile()),
-            new SaveLocation("可公开收藏", new File("collections").getAbsoluteFile()),
-            new SaveLocation("非公开收藏", new File(".collections").getAbsoluteFile()),
-            new SaveLocation("桌面", FileSystemView.getFileSystemView().getHomeDirectory())
+            new SaveLocation(Localization.getString("wallpaper"), new File("wallpaper").getAbsoluteFile()),
+            new SaveLocation(Localization.getString("collections"), new File("collections").getAbsoluteFile()),
+            new SaveLocation(Localization.getString("private_collection"), new File(".collections").getAbsoluteFile()),
+            new SaveLocation(Localization.getString("desktop"), FileSystemView.getFileSystemView().getHomeDirectory())
         );
         setting.siteConfig = SiteConfig.KONACHAN;
         setting.pageSize = 20;
