@@ -5,6 +5,12 @@
     <artifactId>moebooru-viewer</artifactId>
     <version>0.3</version>
     <packaging>jar</packaging>
+    <licenses>
+        <license>
+            <name>General Public License 3.0</name>
+            <url>http://opensource.org/licenses/GPL-3.0</url>
+        </license>
+    </licenses>
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
