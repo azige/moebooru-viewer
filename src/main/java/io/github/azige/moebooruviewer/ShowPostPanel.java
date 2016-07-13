@@ -210,7 +210,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         originPanel.add(createDownloadToLabel(netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
 
         String source = presentingPost.getSource();
-        if (source != null && !source.equals("")){
+        if (source != null && source.startsWith("http")){
             try{
 
                 // 转换 pixiv 来源的 URL
