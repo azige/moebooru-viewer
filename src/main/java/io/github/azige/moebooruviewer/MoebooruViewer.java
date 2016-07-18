@@ -124,10 +124,10 @@ public class MoebooruViewer{
     }
 
     public void showPostById(int id){
-        JOptionPane optionPane = new JOptionPane("检索中：" + id, JOptionPane.INFORMATION_MESSAGE);
-        JButton button = new JButton("取消");
+        JOptionPane optionPane = new JOptionPane(Localization.format("retrieval_format", id), JOptionPane.INFORMATION_MESSAGE);
+        JButton button = new JButton(Localization.getString("cancel"));
         optionPane.setOptions(new Object[]{button});
-        JDialog dialog = optionPane.createDialog(null, "正在检索……");
+        JDialog dialog = optionPane.createDialog(null, Localization.getString("retrieving"));
         button.addActionListener(event -> dialog.dispose());
         dialog.setModal(false);
         dialog.setVisible(true);
@@ -139,7 +139,7 @@ public class MoebooruViewer{
                     if (!searchPosts.isEmpty()){
                         showPostFrame.showPost(searchPosts.get(0));
                     }else{
-                        JOptionPane.showMessageDialog(null, "检索的id不存在！");
+                        JOptionPane.showMessageDialog(null, Localization.getString("id_doesnot_exists"));
                     }
                 }
             });
