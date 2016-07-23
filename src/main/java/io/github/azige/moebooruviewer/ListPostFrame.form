@@ -35,7 +35,7 @@
             <MenuItem class="javax.swing.JMenuItem" name="openPostMenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="open_post_by_id" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                  <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="retrieve_post_by_id" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Events>

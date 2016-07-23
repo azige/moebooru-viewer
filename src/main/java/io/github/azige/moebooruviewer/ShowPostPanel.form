@@ -92,10 +92,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder>
-                  <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                    <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="preview" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                  </Property>
+                <TitledBorder title="Sample">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Messages.properties" key="sample" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
@@ -113,6 +112,7 @@
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
                 <TitledBorder title="JPEG">
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
@@ -129,10 +129,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder>
-                  <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                    <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="artwork" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                  </Property>
+                <TitledBorder title="Original file">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Messages.properties" key="original_file" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
@@ -149,10 +148,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder>
-                  <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                    <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="source" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                  </Property>
+                <TitledBorder title="Source">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Messages.properties" key="source" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
@@ -169,11 +167,9 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="ff" red="ff" type="rgb"/>
                 </Property>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="source_link" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                </Property>
-                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-                  <Color id="Default Cursor"/>
+                <Property name="text" type="java.lang.String" value="Source link" noResource="true"/>
+                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)" type="code"/>
                 </Property>
               </Properties>
             </Component>
@@ -232,10 +228,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder>
-                  <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                    <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="parent_post" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                  </Property>
+                <TitledBorder title="Parent post">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Messages.properties" key="parent_post" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
@@ -255,8 +250,8 @@
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="click_to_view" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
-                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-                  <Color id="Default Cursor"/>
+                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)" type="code"/>
                 </Property>
               </Properties>
             </Component>
@@ -266,10 +261,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder>
-                  <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                    <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="child_post" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                  </Property>
+                <TitledBorder title="Child posts">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Messages.properties" key="child_post" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
@@ -289,8 +283,8 @@
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="click_to_search" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
-                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-                  <Color id="Default Cursor"/>
+                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)" type="code"/>
                 </Property>
               </Properties>
             </Component>
@@ -300,10 +294,9 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder>
-                  <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                    <ResourceString bundle="io/github/azige/moebooruviewer/Messages.properties" key="tags" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                  </Property>
+                <TitledBorder title="Tags">
+                  <ResourceString PropertyName="titleX" bundle="io/github/azige/moebooruviewer/Messages.properties" key="tags" replaceFormat="Localization.getString(&quot;{key}&quot;)"/>
+                  <Connection PropertyName="font" code="null" type="code"/>
                   <Color PropertyName="color" blue="ff" green="ff" red="ff" type="rgb"/>
                 </TitledBorder>
               </Border>
