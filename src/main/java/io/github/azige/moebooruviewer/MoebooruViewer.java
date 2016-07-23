@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,8 @@ public class MoebooruViewer{
     private NetIO netIO;
     @Autowired
     private ShowPostFrame showPostFrame;
+    @Autowired
+    private DownloadManagerFrame downloadFrame;
 
     private Set<ListPostFrame> listPostFrames = new HashSet<>();
 
@@ -154,6 +157,30 @@ public class MoebooruViewer{
         context.getBean(MoebooruViewer.class).listPosts();
     }
 
+    /**
+     * 提交一个下载任务
+     *
+     * @param localFile 本地保存位置
+     * @param url       资源URL
+     * @param taskName  任务的名字，可以为 null，此时使用保存文件名替代
+     */
+    public void downloadFile(File localFile, String url, String taskName){
+        if (taskName == null){
+            taskName = localFile.getName();
+        }
+        DownloadTaskPanel taskPanel = context.getBean(DownloadTaskPanel.class);
+        taskPanel.setTaskName(taskName);
+        taskPanel.setDownloadFile(localFile);
+        downloadFrame.addTaskPanel(taskPanel);
+
+        if (!downloadFrame.isVisible()){
+            downloadFrame.setVisible(true);
+        }
+
+        Runnable task = netIO.createDownloadTask(localFile, url, taskPanel);
+        executor.execute(task);
+    }
+
     public void exit(){
         context.close();
     }
@@ -163,14 +190,20 @@ public class MoebooruViewer{
         logger.info("destroy");
         listPostFrames.forEach(ListPostFrame::dispose);
         executor.shutdownNow();
-        ObjectMapper mapper = new ObjectMapper();
-        File tagFile = new File(siteConfig.getName(), TAG_FILE_NAME);
-        try{
-            mapper.writeValue(tagFile, mapi.getTagMap());
-        }catch (IOException ex){
-            logger.warn("无法读取tag记录文件", ex);
-        }
-        JAXB.marshal(userSetting, new File(SETTING_FILE_NAME));
+        new Thread(() -> {
+            try{
+                executor.awaitTermination(300, TimeUnit.SECONDS);
+            }catch (InterruptedException ex){
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            File tagFile = new File(siteConfig.getName(), TAG_FILE_NAME);
+            try{
+                mapper.writeValue(tagFile, mapi.getTagMap());
+            }catch (IOException ex){
+                logger.warn("无法读取tag记录文件", ex);
+            }
+            JAXB.marshal(userSetting, new File(SETTING_FILE_NAME));
+        }).start();
     }
 
     private static ApplicationContext buildContext(UserSetting userSetting){

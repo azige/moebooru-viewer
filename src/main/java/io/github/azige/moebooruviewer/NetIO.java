@@ -4,6 +4,7 @@
 package io.github.azige.moebooruviewer;
 
 import java.awt.Image;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,12 +12,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
@@ -45,6 +48,15 @@ public class NetIO{
     public interface RunnableThrowsIOException{
 
         void run() throws IOException;
+    }
+
+    public interface DownloadListener extends EventListener{
+
+        void onProgress(double rate);
+
+        void onComplete();
+
+        void onFail();
     }
 
     public static final String PREVIEW_DIR_NAME = "previews";
@@ -102,6 +114,11 @@ public class NetIO{
     }
 
     public InputStream openStream(URL url) throws IOException{
+        InputStream inputStream = openConnection(url).getInputStream();
+        return inputStream;
+    }
+
+    private URLConnection openConnection(URL url) throws IOException{
         URL u;
         if (forceHttps){
             u = new URL(url.toString().replace("http:", "https:"));
@@ -112,7 +129,7 @@ public class NetIO{
         URLConnection connection = u.openConnection();
         connection.setConnectTimeout(30000);
         connection.setReadTimeout(30000);
-        return connection.getInputStream();
+        return connection;
     }
 
     public Image loadPreview(Post post){
@@ -173,11 +190,54 @@ public class NetIO{
         return null;
     }
 
+    public Runnable createDownloadTask(File localFile, String url, DownloadListener listener){
+        Objects.requireNonNull(localFile);
+        Objects.requireNonNull(url);
+        Objects.requireNonNull(listener);
+        return () -> {
+
+            try{
+                URLConnection connection = openConnection(new URL(url));
+                long contentLength = connection.getContentLengthLong();
+
+                // 64KB buffer
+                int bufferSize = 1 << 16;
+                byte[] buffer = new byte[bufferSize];
+                long downloadedLength = 0;
+                double currentRate = 0;
+                int readBytes;
+                File dir = localFile.getParentFile();
+                if (!dir.exists()){
+                    dir.mkdirs();
+                }
+                try (InputStream input = new BufferedInputStream(connection.getInputStream(), bufferSize); OutputStream output = new FileOutputStream(localFile)){
+                    while ((readBytes = input.read(buffer)) != -1){
+                        output.write(buffer, 0, readBytes);
+                        downloadedLength += readBytes;
+                        double rate = (double)downloadedLength / contentLength;
+                        if (rate - currentRate > 0.01){
+                            currentRate = rate;
+                            listener.onProgress(currentRate);
+                        }
+                    }
+                }
+                listener.onComplete();
+                logger.info("downloaded: {}", localFile);
+            }catch (MalformedURLException ex){
+                logger.error("URL编码异常", ex);
+                listener.onFail();
+            }catch (IOException ex){
+                logger.info("IO异常", ex);
+                listener.onFail();
+            }
+        };
+    }
+
     /**
      * 下载一个文件。如果本地已有则不下载。
      *
      * @param localFile 下载到的本地文件
-     * @param url 要下载的资源 url
+     * @param url       要下载的资源 url
      * @return 下载成功则为 true，否则为 flase
      */
     public boolean cacheFile(File localFile, String url){
@@ -188,8 +248,8 @@ public class NetIO{
      * 下载一个文件。如果本地已有则不下载。可以指定强制下载
      *
      * @param localFile 下载到的本地文件
-     * @param url 要下载的资源 url
-     * @param force 若为 true，则即使文件已存在也重新下载
+     * @param url       要下载的资源 url
+     * @param force     若为 true，则即使文件已存在也重新下载
      * @return 下载成功则为 true，否则为 flase
      */
     public boolean cacheFile(File localFile, String url, boolean force){

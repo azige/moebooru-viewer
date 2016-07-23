@@ -337,18 +337,19 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }else{
             label.setText(Localization.getString("downloading"));
             label.setForeground(Color.WHITE);
-            executor.execute(() -> {
-                boolean flag = netIO.cacheFile(saveFile, url, true);
-                SwingUtilities.invokeLater(() -> {
-                    if (flag){
-                        makeLabelDone(label, saveFile);
-                    }else{
-                        label.setText(Localization.getString("failed_to_download_file"));
-                        label.setForeground(COLOR_FAIL);
-                        label.setEnabled(true);
-                    }
-                });
-            });
+            moebooruViewer.downloadFile(saveFile, url, null);
+//            executor.execute(() -> {
+//                boolean flag = netIO.cacheFile(saveFile, url, true);
+//                SwingUtilities.invokeLater(() -> {
+//                    if (flag){
+//                        makeLabelDone(label, saveFile);
+//                    }else{
+//                        label.setText(Localization.getString("failed_to_download_file"));
+//                        label.setForeground(COLOR_FAIL);
+//                        label.setEnabled(true);
+//                    }
+//                });
+//            });
         }
     }
 
