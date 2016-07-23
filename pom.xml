@@ -5,6 +5,7 @@
     <artifactId>moebooru-viewer</artifactId>
     <version>0.4-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>Moebooru Viewer</name>
     <licenses>
         <license>
             <name>General Public License 3.0</name>
@@ -43,7 +44,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <versioningTag>${project.version} build ${maven.build.timestamp}</versioningTag>
+        <versionStamp>${project.name} v${project.version} build ${maven.build.timestamp}</versionStamp>
     </properties>
     <build>
         <plugins>

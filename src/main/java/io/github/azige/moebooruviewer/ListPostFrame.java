@@ -449,13 +449,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     }//GEN-LAST:event_searchHistoryMenuMouseEntered
 
     private void showVersionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showVersionMenuItemActionPerformed
-        String version;
-        try{
-            version = IOUtils.toString(getClass().getResourceAsStream("/io/github/azige/moebooruviewer/version"));
-            JOptionPane.showMessageDialog(this, version);
-        }catch (IOException ex){
-            logger.error(Localization.getString("unable_to_read_version_stamp"), ex);
-        }
+        String version = Localization.getString("version_stamp");
+        JOptionPane.showMessageDialog(this, version);
     }//GEN-LAST:event_showVersionMenuItemActionPerformed
 
     private void openPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openPostMenuItemActionPerformed
