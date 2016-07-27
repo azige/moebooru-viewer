@@ -142,7 +142,8 @@ public class MoebooruViewer{
                     if (!searchPosts.isEmpty()){
                         showPostFrame.showPost(searchPosts.get(0));
                     }else{
-                        JOptionPane.showMessageDialog(null, Localization.getString("id_doesnot_exists"));
+                        JOptionPane.showMessageDialog(null, Localization.getString("id_doesnot_exists"),
+                                Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
                     }
                 }
             });
@@ -253,6 +254,10 @@ public class MoebooruViewer{
                 logger.warn("设置 L&F 时出错", ex);
             }
         }
+
+        UIManager.put("OptionPane.yesButtonText", Localization.getString("yes"));
+        UIManager.put("OptionPane.noButtonText", Localization.getString("no"));
+        UIManager.put("OptionPane.cancelButtonText", Localization.getString("cancel"));
 
         ApplicationContext context = buildContext(setting);
         SwingUtilities.invokeLater(() -> {
