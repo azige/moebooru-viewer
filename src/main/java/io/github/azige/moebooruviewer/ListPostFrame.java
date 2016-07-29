@@ -66,6 +66,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     private MoebooruAPI mapi;
     @Autowired
     private UserSetting userSetting;
+    @Autowired
+    private DownloadManagerFrame downloadManagerFrame;
 
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
@@ -272,6 +274,8 @@ public class ListPostFrame extends javax.swing.JFrame{
         jMenu4 = new javax.swing.JMenu();
         configMenuItem = new javax.swing.JMenuItem();
         cleanCacheMenuItem = new javax.swing.JMenuItem();
+        jMenu5 = new javax.swing.JMenu();
+        showDownloadManagerMenuItem = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         showVersionMenuItem = new javax.swing.JMenuItem();
 
@@ -381,6 +385,18 @@ public class ListPostFrame extends javax.swing.JFrame{
         jMenu4.add(cleanCacheMenuItem);
 
         jMenuBar1.add(jMenu4);
+
+        jMenu5.setText(Localization.getString("view")); // NOI18N
+
+        showDownloadManagerMenuItem.setText(Localization.getString("download_manager")); // NOI18N
+        showDownloadManagerMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showDownloadManagerMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu5.add(showDownloadManagerMenuItem);
+
+        jMenuBar1.add(jMenu5);
 
         jMenu3.setText(bundle.getString("help")); // NOI18N
 
@@ -498,6 +514,10 @@ public class ListPostFrame extends javax.swing.JFrame{
         });
     }//GEN-LAST:event_reloadMenuItemActionPerformed
 
+    private void showDownloadManagerMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showDownloadManagerMenuItemActionPerformed
+        downloadManagerFrame.setVisible(true);
+    }//GEN-LAST:event_showDownloadManagerMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem cleanCacheMenuItem;
     private javax.swing.JMenuItem configMenuItem;
@@ -506,6 +526,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenu jMenu5;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem jumpPageMenuItem;
@@ -516,6 +537,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JMenu searchHistoryMenu;
     private javax.swing.JMenuItem searchTagMenuItem;
+    private javax.swing.JMenuItem showDownloadManagerMenuItem;
     private javax.swing.JMenuItem showVersionMenuItem;
     private javax.swing.JMenuItem switchKonachanMenuItem;
     private javax.swing.JMenuItem switchYandereMenuItem;
