@@ -427,7 +427,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     private void searchTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchTagMenuItemActionPerformed
-        String keywords = JOptionPane.showInputDialog(this, Localization.getString("enter_search_tags"));
+        String keywords = JOptionPane.showInputDialog(this, Localization.getString("enter_search_tags"),
+                Localization.getString("search_by_tag"), JOptionPane.PLAIN_MESSAGE);
         if (keywords != null){
             moebooruViewer.listPosts(keywords.split(" "));
             userSetting.addSearchHistory(keywords);
@@ -447,7 +448,8 @@ public class ListPostFrame extends javax.swing.JFrame{
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void jumpPageMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jumpPageMenuItemActionPerformed
-        String pageString = JOptionPane.showInputDialog(this, Localization.getString("enter_page_number"));
+        String pageString = JOptionPane.showInputDialog(this, Localization.getString("enter_page_number"),
+                Localization.getString("jump_to_page"), JOptionPane.PLAIN_MESSAGE);
         if (pageString != null){
             pageCount = Integer.parseInt(pageString);
             clear();
@@ -466,16 +468,18 @@ public class ListPostFrame extends javax.swing.JFrame{
 
     private void showVersionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showVersionMenuItemActionPerformed
         String version = Localization.getString("version_stamp");
-        JOptionPane.showMessageDialog(this, version);
+        JOptionPane.showMessageDialog(this, version, Localization.getString("version"), JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_showVersionMenuItemActionPerformed
 
     private void openPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openPostMenuItemActionPerformed
-        String id = JOptionPane.showInputDialog(this, Localization.getString("enter_id"));
+        String id = JOptionPane.showInputDialog(this, Localization.getString("enter_id"),
+                Localization.getString("retrieve_post_by_id"), JOptionPane.PLAIN_MESSAGE);
         if (id != null){
             try{
                 moebooruViewer.showPostById(Integer.parseInt(id));
             }catch (NumberFormatException ex){
-                JOptionPane.showMessageDialog(null, Localization.getString("id_format_is_incorrect"));
+                JOptionPane.showMessageDialog(null, Localization.getString("id_format_is_incorrect"),
+                        Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_openPostMenuItemActionPerformed
@@ -488,9 +492,11 @@ public class ListPostFrame extends javax.swing.JFrame{
 
     private void cleanCacheMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanCacheMenuItemActionPerformed
         if (netIO.cleanCache()){
-            JOptionPane.showMessageDialog(this, Localization.getString("successfully_deleted"));
+            JOptionPane.showMessageDialog(this, Localization.getString("successfully_deleted"),
+                        Localization.getString("success"), JOptionPane.INFORMATION_MESSAGE);
         }else{
-            JOptionPane.showMessageDialog(this, Localization.getString("failed_to_delete"));
+            JOptionPane.showMessageDialog(this, Localization.getString("failed_to_delete"),
+                        Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_cleanCacheMenuItemActionPerformed
 
