@@ -126,6 +126,10 @@ public class UserSetting{
         this.LookAndFeel = LookAndFeel;
     }
 
+    // Cause info in old files lost.
+    // TODO: decomment this at v1.0
+    //@XmlElementWrapper(name = "saveLocations")
+    //@XmlElement(name = "saveLocation")
     public List<SaveLocation> getSaveLocations(){
         return saveLocations;
     }
