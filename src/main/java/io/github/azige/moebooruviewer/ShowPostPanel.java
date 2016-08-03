@@ -214,7 +214,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
             try{
 
                 // 转换 pixiv 来源的 URL
-                Matcher matcher = Pattern.compile("i.?\\.pixiv\\.net.*/(\\d+)").matcher(source);
+                Matcher matcher = Pattern.compile(".+\\.pixiv\\.net.*/(\\d+)").matcher(source);
                 if (matcher.find()){
                     source = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
                 }
