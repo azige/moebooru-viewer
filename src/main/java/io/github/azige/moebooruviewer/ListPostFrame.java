@@ -430,8 +430,7 @@ public class ListPostFrame extends javax.swing.JFrame{
         String keywords = JOptionPane.showInputDialog(this, Localization.getString("enter_search_tags"),
                 Localization.getString("search_by_tag"), JOptionPane.PLAIN_MESSAGE);
         if (keywords != null){
-            moebooruViewer.listPosts(keywords.split(" "));
-            userSetting.addSearchHistory(keywords);
+            moebooruViewer.searchByTags(keywords);
         }
     }//GEN-LAST:event_searchTagMenuItemActionPerformed
 
@@ -461,7 +460,7 @@ public class ListPostFrame extends javax.swing.JFrame{
         searchHistoryMenu.removeAll();
         userSetting.getSearchHistories().forEach(keywords -> {
             JMenuItem menuItem = new JMenuItem(keywords);
-            menuItem.addActionListener(event -> moebooruViewer.listPosts(keywords.split(" ")));
+            menuItem.addActionListener(event -> moebooruViewer.searchByTags(keywords));
             searchHistoryMenu.add(menuItem);
         });
     }//GEN-LAST:event_searchHistoryMenuMouseEntered

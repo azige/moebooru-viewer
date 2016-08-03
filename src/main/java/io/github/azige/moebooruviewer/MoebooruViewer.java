@@ -100,6 +100,11 @@ public class MoebooruViewer{
         }
     }
 
+    public void searchByTags(String tags){
+        listPosts(tags.split(" "));
+        userSetting.addSearchHistory(tags);
+    }
+
     public void listPosts(String... tags){
         ListPostFrame listPostFrame = context.getBean(ListPostFrame.class);
         if (userSetting.isSafeMode()){
@@ -145,7 +150,7 @@ public class MoebooruViewer{
                         showPostFrame.showPost(searchPosts.get(0));
                     }else{
                         JOptionPane.showMessageDialog(null, Localization.getString("id_doesnot_exists"),
-                                Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
+                            Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
                     }
                 }
             });

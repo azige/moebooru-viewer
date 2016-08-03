@@ -182,7 +182,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
                         @Override
                         public void mouseClicked(MouseEvent e){
                             if (SwingUtilities.isLeftMouseButton(e)){
-                                moebooruViewer.listPosts(tagName);
+                                moebooruViewer.searchByTags(tagName);
                             }
                         }
 
