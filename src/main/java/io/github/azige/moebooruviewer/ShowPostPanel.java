@@ -250,7 +250,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
                 @Override
                 public void mouseClicked(MouseEvent e){
-                    moebooruViewer.showPostById(parentId);
+                    moebooruViewer.showPostById(parentId, ShowPostPanel.this);
                 }
             });
         }else{

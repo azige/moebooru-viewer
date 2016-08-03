@@ -3,6 +3,7 @@
  */
 package io.github.azige.moebooruviewer;
 
+import java.awt.Dialog.ModalityType;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.LookAndFeel;
@@ -126,13 +128,13 @@ public class MoebooruViewer{
         showPostFrame.showPost(post);
     }
 
-    public void showPostById(int id){
-        JOptionPane optionPane = new JOptionPane(Localization.format("retrieval_format", id), JOptionPane.INFORMATION_MESSAGE);
+    public void showPostById(int id, java.awt.Component dialogParent){
+        JOptionPane optionPane = new JOptionPane(Localization.format("retrieval_format", String.valueOf(id)), JOptionPane.INFORMATION_MESSAGE);
         JButton button = new JButton(Localization.getString("cancel"));
         optionPane.setOptions(new Object[]{button});
-        JDialog dialog = optionPane.createDialog(null, Localization.getString("retrieving"));
+        JDialog dialog = optionPane.createDialog(dialogParent, Localization.getString("retrieving"));
         button.addActionListener(event -> dialog.dispose());
-        dialog.setModal(false);
+        dialog.setModalityType(ModalityType.MODELESS);
         dialog.setVisible(true);
         executor.execute(() -> {
             List<Post> searchPosts = netIO.retry(() -> mapi.listPosts(1, 1, "id:" + id));

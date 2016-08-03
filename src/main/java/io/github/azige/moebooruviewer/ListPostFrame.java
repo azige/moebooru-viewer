@@ -476,7 +476,7 @@ public class ListPostFrame extends javax.swing.JFrame{
                 Localization.getString("retrieve_post_by_id"), JOptionPane.PLAIN_MESSAGE);
         if (id != null){
             try{
-                moebooruViewer.showPostById(Integer.parseInt(id));
+                moebooruViewer.showPostById(Integer.parseInt(id), this);
             }catch (NumberFormatException ex){
                 JOptionPane.showMessageDialog(null, Localization.getString("id_format_is_incorrect"),
                         Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
