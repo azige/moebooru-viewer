@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 public class UserSetting{
 
     private static final int MAX_HISTORY_COUNT = 10;
+    private static final int SAVE_LOCATION_ITEMS_COUNT = 4;
 
     private SiteConfig siteConfig;
     private LinkedList<String> searchHistories = new LinkedList<>();
@@ -69,6 +70,16 @@ public class UserSetting{
         setting.siteConfig = SiteConfig.KONACHAN;
         setting.pageSize = 20;
         return setting;
+    }
+
+    public void verifyAndRepair(){
+        UserSetting defaulSetting = createDefaultSetting();
+        if (saveLocations.size() < SAVE_LOCATION_ITEMS_COUNT){
+            saveLocations = defaulSetting.saveLocations;
+        }
+        if (siteConfig == null){
+            siteConfig = defaulSetting.siteConfig;
+        }
     }
 
     public SiteConfig getSiteConfig(){

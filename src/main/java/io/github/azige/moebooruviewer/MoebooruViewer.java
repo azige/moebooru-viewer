@@ -234,6 +234,7 @@ public class MoebooruViewer{
         if (settingFile.exists()){
             try{
                 setting = JAXB.unmarshal(settingFile, UserSetting.class);
+                setting.verifyAndRepair();
             }catch (RuntimeException ex){
                 logger.warn("读取用户配置文件出错", ex);
             }
