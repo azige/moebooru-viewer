@@ -222,6 +222,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
                 URL url = new URL(source);
                 sourceLinkLabel.setText(url.getHost());
+                sourceLinkLabel.setToolTipText(url.toString());
                 sourceLinkLabel.addMouseListener(new MouseAdapter(){
 
                     @Override
