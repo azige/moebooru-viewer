@@ -15,6 +15,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -381,6 +382,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         postPopupMenu = new javax.swing.JPopupMenu();
         copyPostImageMenuItem = new javax.swing.JMenuItem();
         reloadMenuItem = new javax.swing.JMenuItem();
+        viewOnSiteMenuItem = new javax.swing.JMenuItem();
         toolPanel = new javax.swing.JPanel();
         samplePanel = new javax.swing.JPanel();
         jpegPanel = new javax.swing.JPanel();
@@ -421,6 +423,14 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
         });
         postPopupMenu.add(reloadMenuItem);
+
+        viewOnSiteMenuItem.setText(Localization.getString("view_on_site")); // NOI18N
+        viewOnSiteMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                viewOnSiteMenuItemActionPerformed(evt);
+            }
+        });
+        postPopupMenu.add(viewOnSiteMenuItem);
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -523,6 +533,15 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private void copyPostImageMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyPostImageMenuItemActionPerformed
         getToolkit().getSystemClipboard().setContents(new ImageSelection(image), null);
     }//GEN-LAST:event_copyPostImageMenuItemActionPerformed
+
+    private void viewOnSiteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewOnSiteMenuItemActionPerformed
+        String url = userSetting.getSiteConfig().getRootUrl() + "/post/show/" + presentingPost.getId();
+        try{
+            Desktop.getDesktop().browse(new URI(url));
+        }catch (IOException | URISyntaxException ex){
+            logger.info("无法启动浏览器", ex);
+        }
+    }//GEN-LAST:event_viewOnSiteMenuItemActionPerformed
 
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
@@ -631,5 +650,6 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel tagPanel;
     private javax.swing.JPopupMenu tagPopupMenu;
     private javax.swing.JPanel toolPanel;
+    private javax.swing.JMenuItem viewOnSiteMenuItem;
     // End of variables declaration//GEN-END:variables
 }
