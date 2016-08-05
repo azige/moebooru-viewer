@@ -36,7 +36,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
     @Autowired
     private ApplicationContext context;
 
-    private Map<Long, ShowPostPanel> postPanelMap = new HashMap<>();
+    private Map<Integer, ShowPostPanel> postPanelMap = new HashMap<>();
 
     /**
      * Creates new form PostFrame

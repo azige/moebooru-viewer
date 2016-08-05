@@ -3,7 +3,7 @@
  */
 package io.github.azige.moebooruviewer;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Post{
 
-    private long id;
+    private int id;
     @JsonProperty("preview_url")
     private String previewUrl;
     @JsonProperty("sample_url")
@@ -30,14 +30,18 @@ public class Post{
     @JsonProperty("has_children")
     private boolean hasChildren;
 
+    @JsonIgnore
+    private Pool pool;
+
+
     public Post(){
     }
 
-    public long getId(){
+    public int getId(){
         return id;
     }
 
-    public void setId(long id){
+    public void setId(int id){
         this.id = id;
     }
 
@@ -105,10 +109,18 @@ public class Post{
         this.hasChildren = hasChildren;
     }
 
+    public Pool getPool(){
+        return pool;
+    }
+
+    public void setPool(Pool pool){
+        this.pool = pool;
+    }
+
     @Override
     public int hashCode(){
         int hash = 7;
-        hash = 37 * hash + (int)(this.id ^ (this.id >>> 32));
+        hash = 47 * hash + this.id;
         return hash;
     }
 

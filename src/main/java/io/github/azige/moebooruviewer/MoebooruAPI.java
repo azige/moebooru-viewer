@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +25,8 @@ import org.springframework.stereotype.Component;
 /**
  *
  * @author Azige
+ * @see https://yande.re/help/api
+ * @see https://yande.re/wiki/show?title=api_v2
  */
 @Component
 public class MoebooruAPI{
@@ -43,6 +47,11 @@ public class MoebooruAPI{
     public MoebooruAPI(){
     }
 
+    public MoebooruAPI(SiteConfig siteConfig, NetIO netIO){
+        this.siteConfig = siteConfig;
+        this.netIO = netIO;
+    }
+
     public List<Post> listPosts() throws IOException{
         return listPosts(1, LIMIT);
     }
@@ -56,16 +65,30 @@ public class MoebooruAPI{
     }
 
     public List<Post> listPosts(int page, int limit, String... tags) throws IOException{
-        List<String> tagList = new ArrayList<>(Arrays.asList(tags));
-        String parameters = String.format("page=%d&limit=%d&tags=%s", page, limit,
+        String parameters = String.format("api_version=2&include_pools=1&page=%d&limit=%d&tags=%s", page, limit,
             Stream.of(tags).reduce((s1, s2) -> s1 + "+" + s2).orElse("")
         );
         URL url = new URL(siteConfig.getRootUrl() + POSTS_PATH + "?" + parameters);
         try (InputStream input = netIO.openStream(url)){
-            JsonNode posts = mapper.readTree(input);
-            List<Post> postList = new ArrayList<>();
-            posts.forEach(post -> postList.add(mapper.convertValue(post, Post.class)));
-            return postList;
+            JsonNode root = mapper.readTree(input);
+            JsonNode posts = root.get("posts");
+            Map<Integer, Post> postMap = StreamSupport.stream(posts.spliterator(), false)
+                .map(post -> mapper.convertValue(post, Post.class))
+                .collect(Collectors.toMap(Post::getId, Function.identity()));
+            JsonNode pools = root.get("pools");
+            Map<Integer, Pool> poolMap = StreamSupport.stream(pools.spliterator(), false)
+                .map(pool -> mapper.convertValue(pool, Pool.class))
+                .collect(Collectors.toMap(Pool::getId, Function.identity()));
+            JsonNode poolPosts = root.get("pool_posts");
+            StreamSupport.stream(poolPosts.spliterator(), false)
+                .map(poolPost -> mapper.convertValue(poolPost, PoolPost.class))
+                .forEach(poolPost -> {
+                    Post post = postMap.get(poolPost.getPostId());
+                    if (post != null){
+                        post.setPool(poolMap.get(poolPost.getPoolId()));
+                    }
+                });
+            return new ArrayList<>(postMap.values());
         }
     }
 
