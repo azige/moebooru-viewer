@@ -40,7 +40,9 @@ public class Utils{
 
     public static String getFileNameFromUrl(String url){
         try{
-            return URLDecoder.decode(url.replaceFirst(".*/", ""), "UTF-8").replaceAll("[?:*\"<>|]", "_");
+            return URLDecoder.decode(url.replaceFirst(".*/", ""), "UTF-8")
+                .replaceAll("\\?.*", "")
+                .replaceAll("[?:*\"<>|]", "_");
         }catch (UnsupportedEncodingException ex){
             logger.error("URL编码异常", ex);
             return "unknown";

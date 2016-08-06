@@ -270,6 +270,37 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }else{
             childrenPanel.setVisible(false);
         }
+
+        if (presentingPost.getPool() != null){
+            poolLinkLabel.setToolTipText(presentingPost.getPool().getName());
+            poolLinkLabel.addMouseListener(new MouseAdapter(){
+
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    moebooruViewer.listPosts("pool:" + presentingPost.getPool().getId());
+                }
+            });
+            poolDownloadLabel.addMouseListener(new MouseAdapter(){
+
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    downloadFileTo(poolDownloadLabel, null, mapi.getUrlOfPoolArchive(presentingPost.getPool()));
+                }
+            });
+            poolViewOnSiteLabel.addMouseListener(new MouseAdapter(){
+
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    try{
+                        Desktop.getDesktop().browse(new URI(mapi.getUrlOfPool(presentingPost.getPool())));
+                    }catch (URISyntaxException | IOException ex){
+                        logger.info("无法启动浏览器", ex);
+                    }
+                }
+            });
+        }else{
+            poolPanel.setVisible(false);
+        }
     }
 
     private JLabel createDownloadLabel(SaveLocation sl, File localFile, String url){
@@ -324,6 +355,15 @@ public class ShowPostPanel extends javax.swing.JPanel{
         });
     }
 
+    /**
+     * Submit a task of downloading.
+     *
+     * @param label     Which label clicked
+     * @param localFile Possibly existed local file, could be null. If it's not
+     *                  null and exists, simplely copy this file to saveFile
+     * @param url       The url to download
+     * @param saveFile  Where to save downloaded file
+     */
     private void downloadFile(JLabel label, File localFile, String url, File saveFile){
         label.setEnabled(false);
         if (localFile != null && localFile.exists()){
@@ -384,6 +424,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         copyPostImageMenuItem = new javax.swing.JMenuItem();
         reloadMenuItem = new javax.swing.JMenuItem();
         viewOnSiteMenuItem = new javax.swing.JMenuItem();
+        poolDownloadLabel = new javax.swing.JLabel();
         toolPanel = new javax.swing.JPanel();
         samplePanel = new javax.swing.JPanel();
         jpegPanel = new javax.swing.JPanel();
@@ -393,6 +434,9 @@ public class ShowPostPanel extends javax.swing.JPanel{
         centerPanel = new javax.swing.JPanel();
         postLabel = new javax.swing.JLabel();
         infoPanel = new javax.swing.JPanel();
+        poolPanel = new javax.swing.JPanel();
+        poolLinkLabel = new javax.swing.JLabel();
+        poolViewOnSiteLabel = new javax.swing.JLabel();
         parentPanel = new javax.swing.JPanel();
         parentLinkLabel = new javax.swing.JLabel();
         childrenPanel = new javax.swing.JPanel();
@@ -432,6 +476,10 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
         });
         postPopupMenu.add(viewOnSiteMenuItem);
+
+        poolDownloadLabel.setForeground(new java.awt.Color(255, 255, 255));
+        poolDownloadLabel.setText(bundle.getString("click_to_download_archive")); // NOI18N
+        poolDownloadLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         setBackground(new java.awt.Color(34, 34, 34));
         setLayout(new java.awt.BorderLayout());
@@ -484,6 +532,22 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
         infoPanel.setOpaque(false);
         infoPanel.setLayout(new javax.swing.BoxLayout(infoPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        poolPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, Localization.getString("pool"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, null, new java.awt.Color(255, 255, 255))); // NOI18N
+        poolPanel.setOpaque(false);
+        poolPanel.setLayout(new javax.swing.BoxLayout(poolPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        poolLinkLabel.setForeground(new java.awt.Color(255, 255, 255));
+        poolLinkLabel.setText(bundle.getString("click_to_search")); // NOI18N
+        poolLinkLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        poolPanel.add(poolLinkLabel);
+
+        poolViewOnSiteLabel.setForeground(new java.awt.Color(255, 255, 255));
+        poolViewOnSiteLabel.setText(bundle.getString("view_pool_on_site")); // NOI18N
+        poolViewOnSiteLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        poolPanel.add(poolViewOnSiteLabel);
+
+        infoPanel.add(poolPanel);
 
         parentPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, Localization.getString("parent_post"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, null, new java.awt.Color(255, 255, 255))); // NOI18N
         parentPanel.setOpaque(false);
@@ -641,6 +705,10 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private javax.swing.JPanel originPanel;
     private javax.swing.JLabel parentLinkLabel;
     private javax.swing.JPanel parentPanel;
+    private javax.swing.JLabel poolDownloadLabel;
+    private javax.swing.JLabel poolLinkLabel;
+    private javax.swing.JPanel poolPanel;
+    private javax.swing.JLabel poolViewOnSiteLabel;
     private javax.swing.JLabel postLabel;
     private javax.swing.JPopupMenu postPopupMenu;
     private javax.swing.JMenuItem reloadMenuItem;

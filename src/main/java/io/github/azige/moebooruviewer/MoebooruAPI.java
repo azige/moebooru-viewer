@@ -92,6 +92,19 @@ public class MoebooruAPI{
         }
     }
 
+    // Need login to access
+    public String getUrlOfPoolArchive(Pool pool){
+        String url = siteConfig.getRootUrl()
+            + String.format("/pool/zip/%d/%s.zip?jpeg=1", pool.getId(), pool.getName());
+        return url;
+    }
+
+    public String getUrlOfPool(Pool pool){
+        String url = siteConfig.getRootUrl()
+            + String.format("/pool/show/%d", pool.getId());
+        return url;
+    }
+
     public Map<String, Tag> getTagMap(){
         return tagMap;
     }
