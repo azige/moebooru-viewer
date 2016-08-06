@@ -1,3 +1,4 @@
 @ehco off
-set file=${project.build.finalName}
-start javaw -jar lib/%file%.jar
+cd /d %~dp0
+set file=${project.artifactId}
+start javaw -jar lib\%file%.jar
