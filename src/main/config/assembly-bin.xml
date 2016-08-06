@@ -7,6 +7,7 @@
     <formats>
         <format>dir</format>
         <format>zip</format>
+        <format>tar.gz</format>
     </formats>
     <files>
         <file>
@@ -20,6 +21,14 @@
             <outputDirectory>/</outputDirectory>
             <filtered>true</filtered>
             <lineEnding>dos</lineEnding>
+        </file>
+        <file>
+            <source>src/main/assembly/run.sh</source>
+            <destName>run.sh</destName>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+            <lineEnding>unix</lineEnding>
+            <fileMode>755</fileMode>
         </file>
     </files>
     <dependencySets>
