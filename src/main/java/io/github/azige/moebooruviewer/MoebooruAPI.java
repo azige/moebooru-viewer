@@ -78,7 +78,7 @@ public class MoebooruAPI{
             JsonNode pools = root.get("pools");
             Map<Integer, Pool> poolMap = StreamSupport.stream(pools.spliterator(), false)
                 .map(pool -> mapper.convertValue(pool, Pool.class))
-                .collect(Collectors.toMap(Pool::getId, Function.identity()));
+                .collect(Collectors.toMap(Pool::getId, Function.identity(), (a, b) -> a));
             JsonNode poolPosts = root.get("pool_posts");
             StreamSupport.stream(poolPosts.spliterator(), false)
                 .map(poolPost -> mapper.convertValue(poolPost, PoolPost.class))

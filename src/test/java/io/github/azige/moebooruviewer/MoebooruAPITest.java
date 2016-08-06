@@ -61,17 +61,16 @@ public class MoebooruAPITest{
 
     @Test
     public void testListPostsWithPool() throws IOException{
-        // pool_post.json comes from https://yande.re/post.json?api_version=2&include_pools=1&tags=id:360242
-        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=1&tags=id:360242"))).thenReturn(getClass().getResourceAsStream("/pool_post.json"));
+        // pool_post.json comes from https://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094
+        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094"))).thenReturn(getClass().getResourceAsStream("/pool_post.json"));
 
-        List<Post> posts = mapi.listPosts(1, 1, "id:360242");
-        assertThat(posts.size(), is(1));
-        Post post = posts.get(0);
-        assertThat(post, allOf(
+        List<Post> posts = mapi.listPosts(1, 5, "pool:4094");
+        assertThat(posts.size(), is(5));
+        assertThat(posts, hasItem(allOf(
             hasProperty("id", is(360242)),
             hasProperty("tags", is("cameltoe erect_nipples ryohka school_swimsuit see_through swimsuits undressing"))
-        ));
-        Pool pool = post.getPool();
+        )));
+        Pool pool = posts.get(0).getPool();
         assertThat(pool, allOf(
             hasProperty("id", is(4094)),
             hasProperty("name", is("Otona_no_Moeoh_2016-Summer_-_Chotto_Daitanna_Mizugi_Hon"))
