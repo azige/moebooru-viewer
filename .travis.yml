@@ -1,0 +1,25 @@
+language: java
+
+jdk:
+- oraclejdk8
+
+cache:
+  directories:
+  - $HOME/.m2
+
+env:
+  - RELEASE_NAME=moebooru-viewer-$TRAVIS_TAG
+
+before_deploy:
+    - mvn -Prelease clean package -DskipTests=true -DreleaseName=$RELEASE_NAME
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "rVAZYzyEMs9Ua5Zy38xJJuGRCn/kEIk9ZqzT5WN7GTFWxt4WNuG2HsOBCPJWR6ORIvEkncT7TZZb6kKLPFAVFAs1zhedt9Nn+ASDVbZBp7qdxsdSpxhcoA+rf2K8NmBBANMHWpA8fpjxAeMxRv35AnqaFwFEf8MDsqPCVzmijQ3eKVVp+0TWgUEDVXdmFHP8Fhxw7iRt75MGOc9OxMl3YMh50pmapM2LRbl4N8gTlbxjwTsKxPieDRzrvj9KQrwjacUpUDmj58bVwMdLAbJlEev5dEzoFupJGqCjTV12ycudpGVKXJ96c15lu+ohKT7LzAi34c+V8s8N9Ur586AKdOe07UXkxw/dDuWgx6Sj60q39eaksS8HzheWrSnkXA35a0z+4u54eAFsFdNGpFISeWbAHfE8uoEM+PF17PiJaovftIt7uk557rLWy3+7jedJ4AuwMJim/3XF4OfDhjwcyTe3sF4DOAVIg2Q9iDHDRq/DDsKJB0mNstFNxqa9+xITTEnj30Litt+0NmBxrG4W4XMAuZVyHHlUdKhOmARwmO58JwOVNwhh7dThgT3MQdB1EFfZCQmmyR3WfRpmgzp6WXzftbFHN6mRx2Ijw8o9oESHVDAUG4tuu4ejHSIcM4M0r2rHhoe2bI4sxMmDl/MrsRscUNOVfmErRS64VYX2hYQ="
+  file:
+    - target/$RELEASE_NAME-bin.zip
+    - target/$RELEASE_NAME-bin.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true
