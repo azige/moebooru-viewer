@@ -59,29 +59,10 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <versionStamp>${project.name} v${project.version} build ${maven.build.timestamp}</versionStamp>
+        <releaseName>${project.build.finalName}</releaseName>
     </properties>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <id>single</id>
-                    </execution>
-                </executions>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/config/assembly-bin.xml</descriptor>
-                        <descriptor>src/main/config/assembly-update-package.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -115,6 +96,29 @@
                         <directory>${basedir}/src/release/resources</directory>
                     </resource>
                 </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <id>single</id>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/config/assembly-bin.xml</descriptor>
+                                <descriptor>src/main/config/assembly-update-package.xml</descriptor>
+                            </descriptors>
+                            <finalName>${releaseName}</finalName>
+                        </configuration>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
     </profiles>
