@@ -3,24 +3,28 @@
  */
 package io.github.azige.moebooruviewer;
 
+import java.awt.Image;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 /**
  *
  * @author Azige
  */
-public class SiteConfig{
+public enum SiteConfig{
 
-    public static final SiteConfig KONACHAN = new SiteConfig("Konachan.com", "http://konachan.com");
-    public static final SiteConfig YANDERE = new SiteConfig("yande.re", "http://yande.re");
+    KONACHAN("Konachan.com", "http://konachan.com", "/konachan.com.png"),
+    YANDERE("yande.re", "http://yande.re", "/yande.re.png");
 
     private String name;
     private String rootUrl;
+    private String iconLocation;
 
-    public SiteConfig(){
-    }
-
-    public SiteConfig(String name, String rootUrl){
+    private SiteConfig(String name, String rootUrl, String iconLocation){
         this.name = name;
         this.rootUrl = rootUrl;
+        this.iconLocation = iconLocation;
     }
 
     public String getName(){
@@ -37,5 +41,13 @@ public class SiteConfig{
 
     public void setRootUrl(String rootUrl){
         this.rootUrl = rootUrl;
+    }
+
+    public String getIconLocation(){
+        return iconLocation;
+    }
+
+    public Image getIcon() throws IOException{
+        return ImageIO.read(getClass().getResource(iconLocation));
     }
 }

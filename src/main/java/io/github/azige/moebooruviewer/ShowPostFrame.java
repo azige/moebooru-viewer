@@ -8,9 +8,11 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeEvent;
@@ -35,6 +37,8 @@ public class ShowPostFrame extends javax.swing.JFrame{
 
     @Autowired
     private ApplicationContext context;
+    @Autowired
+    private SiteConfig siteConfig;
 
     private Map<Integer, ShowPostPanel> postPanelMap = new HashMap<>();
 
@@ -83,6 +87,7 @@ public class ShowPostFrame extends javax.swing.JFrame{
             }
 
         });
+
     }
 
     @Override
@@ -91,6 +96,15 @@ public class ShowPostFrame extends javax.swing.JFrame{
         if (e.getID() == WindowEvent.WINDOW_CLOSING){
             tabbedPane.removeAll();
             postPanelMap.clear();
+        }
+    }
+
+    @PostConstruct
+    public void init(){
+        try{
+            setIconImage(siteConfig.getIcon());
+        }catch (IOException ex){
+            logger.info("无法设置图标", ex);
         }
     }
 
