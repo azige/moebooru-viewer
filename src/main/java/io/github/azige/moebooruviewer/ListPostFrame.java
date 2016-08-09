@@ -123,7 +123,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void init(){
         setTitle(siteConfig.getName() + " Viewer");
         pageSize = userSetting.getPageSize();
-                try{
+        try{
             setIconImage(siteConfig.getIcon());
         }catch (IOException ex){
             logger.info("无法设置图标", ex);
@@ -270,6 +270,10 @@ public class ListPostFrame extends javax.swing.JFrame{
         openPostMenuItem = new javax.swing.JMenuItem();
         jumpPageMenuItem = new javax.swing.JMenuItem();
         searchTagMenuItem = new javax.swing.JMenuItem();
+        favoriteTagMenu = new javax.swing.JMenu();
+        favoriteTagSeparator = new javax.swing.JPopupMenu.Separator();
+        addFavoriteTagMenuItem = new javax.swing.JMenuItem();
+        removeFavoriteTagMenuItem = new javax.swing.JMenuItem();
         searchHistoryMenu = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         switchKonachanMenuItem = new javax.swing.JMenuItem();
@@ -331,6 +335,32 @@ public class ListPostFrame extends javax.swing.JFrame{
             }
         });
         jMenu1.add(searchTagMenuItem);
+
+        favoriteTagMenu.setText(Localization.getString("favorite_tags")); // NOI18N
+        favoriteTagMenu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                favoriteTagMenuMouseEntered(evt);
+            }
+        });
+        favoriteTagMenu.add(favoriteTagSeparator);
+
+        addFavoriteTagMenuItem.setText(Localization.getString("add")); // NOI18N
+        addFavoriteTagMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addFavoriteTagMenuItemActionPerformed(evt);
+            }
+        });
+        favoriteTagMenu.add(addFavoriteTagMenuItem);
+
+        removeFavoriteTagMenuItem.setText(Localization.getString("remove")); // NOI18N
+        removeFavoriteTagMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeFavoriteTagMenuItemActionPerformed(evt);
+            }
+        });
+        favoriteTagMenu.add(removeFavoriteTagMenuItem);
+
+        jMenu1.add(favoriteTagMenu);
 
         searchHistoryMenu.setText(bundle.getString("search_history")); // NOI18N
         searchHistoryMenu.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -528,10 +558,41 @@ public class ListPostFrame extends javax.swing.JFrame{
         downloadManagerFrame.setVisible(true);
     }//GEN-LAST:event_showDownloadManagerMenuItemActionPerformed
 
+    private void addFavoriteTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFavoriteTagMenuItemActionPerformed
+        String tag = JOptionPane.showInputDialog(this, Localization.getString("enter_favorite_tag_add"),
+            Localization.getString("favorite_tags"), JOptionPane.PLAIN_MESSAGE);
+        if (tag != null){
+            userSetting.getFavoriteTags().add(tag);
+        }
+    }//GEN-LAST:event_addFavoriteTagMenuItemActionPerformed
+
+    private void removeFavoriteTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeFavoriteTagMenuItemActionPerformed
+        String tag = JOptionPane.showInputDialog(this, Localization.getString("enter_favorite_tag_remove"),
+            Localization.getString("favorite_tags"), JOptionPane.PLAIN_MESSAGE);
+        if (tag != null){
+            userSetting.getFavoriteTags().remove(tag);
+        }
+    }//GEN-LAST:event_removeFavoriteTagMenuItemActionPerformed
+
+    private void favoriteTagMenuMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_favoriteTagMenuMouseEntered
+        favoriteTagMenu.removeAll();
+        userSetting.getFavoriteTags().forEach(keywords -> {
+            JMenuItem menuItem = new JMenuItem(keywords);
+            menuItem.addActionListener(event -> moebooruViewer.searchByTags(keywords));
+            favoriteTagMenu.add(menuItem);
+        });
+        favoriteTagMenu.add(favoriteTagSeparator);
+        favoriteTagMenu.add(addFavoriteTagMenuItem);
+        favoriteTagMenu.add(removeFavoriteTagMenuItem);
+    }//GEN-LAST:event_favoriteTagMenuMouseEntered
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem addFavoriteTagMenuItem;
     private javax.swing.JMenuItem cleanCacheMenuItem;
     private javax.swing.JMenuItem configMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
+    private javax.swing.JMenu favoriteTagMenu;
+    private javax.swing.JPopupMenu.Separator favoriteTagSeparator;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
@@ -544,6 +605,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private javax.swing.JPopupMenu postPreviewPopupMenu;
     private javax.swing.JPanel postsPanel;
     private javax.swing.JMenuItem reloadMenuItem;
+    private javax.swing.JMenuItem removeFavoriteTagMenuItem;
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JMenu searchHistoryMenu;
     private javax.swing.JMenuItem searchTagMenuItem;

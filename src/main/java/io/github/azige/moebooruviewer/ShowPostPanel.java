@@ -420,6 +420,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
         tagPopupMenu = new javax.swing.JPopupMenu();
         copyTagNameMenuItem = new javax.swing.JMenuItem();
+        addToFavoriteMenuItem = new javax.swing.JMenuItem();
         postPopupMenu = new javax.swing.JPopupMenu();
         copyPostImageMenuItem = new javax.swing.JMenuItem();
         reloadMenuItem = new javax.swing.JMenuItem();
@@ -452,6 +453,14 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
         });
         tagPopupMenu.add(copyTagNameMenuItem);
+
+        addToFavoriteMenuItem.setText(Localization.getString("add_to_favorite")); // NOI18N
+        addToFavoriteMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addToFavoriteMenuItemActionPerformed(evt);
+            }
+        });
+        tagPopupMenu.add(addToFavoriteMenuItem);
 
         copyPostImageMenuItem.setText(bundle.getString("copy_to_clipboard")); // NOI18N
         copyPostImageMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -608,6 +617,10 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }
     }//GEN-LAST:event_viewOnSiteMenuItemActionPerformed
 
+    private void addToFavoriteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToFavoriteMenuItemActionPerformed
+        userSetting.getFavoriteTags().add(showingPopupMenuTag.getName());
+    }//GEN-LAST:event_addToFavoriteMenuItemActionPerformed
+
     public void addLoadingListener(LoadingListener listener){
         loadingListeners.add(listener);
     }
@@ -695,6 +708,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem addToFavoriteMenuItem;
     private javax.swing.JPanel centerPanel;
     private javax.swing.JLabel childrenLinkLabel;
     private javax.swing.JPanel childrenPanel;

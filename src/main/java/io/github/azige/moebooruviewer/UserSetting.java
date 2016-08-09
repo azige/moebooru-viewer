@@ -5,6 +5,7 @@ package io.github.azige.moebooruviewer;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class UserSetting{
 
     private SiteConfig siteConfig;
     private LinkedList<String> searchHistories = new LinkedList<>();
+    private LinkedHashSet<String> favoriteTags = new LinkedHashSet<>();
     private File lastSaveDir;
     private boolean safeMode = true;
     private String LookAndFeel;
@@ -111,6 +113,16 @@ public class UserSetting{
         if (searchHistories.size() > MAX_HISTORY_COUNT){
             searchHistories.removeLast();
         }
+    }
+
+    @XmlElementWrapper(name = "favoriteTags")
+    @XmlElement(name = "tag")
+    public LinkedHashSet<String> getFavoriteTags(){
+        return favoriteTags;
+    }
+
+    public void setFavoriteTags(LinkedHashSet<String> favoriteTags){
+        this.favoriteTags = favoriteTags;
     }
 
     public File getLastSaveDir(){
