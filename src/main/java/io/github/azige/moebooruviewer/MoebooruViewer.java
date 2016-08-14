@@ -8,6 +8,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,7 +24,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.LookAndFeel;
@@ -267,6 +267,14 @@ public class MoebooruViewer{
         UIManager.put("OptionPane.yesButtonText", Localization.getString("yes"));
         UIManager.put("OptionPane.noButtonText", Localization.getString("no"));
         UIManager.put("OptionPane.cancelButtonText", Localization.getString("cancel"));
+
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(){
+
+            @Override
+            public void uncaughtException(Thread t, Throwable e){
+                logger.warn("未捕获的异常", e);
+            }
+        });
 
         ApplicationContext context = buildContext(setting);
         SwingUtilities.invokeLater(() -> {
