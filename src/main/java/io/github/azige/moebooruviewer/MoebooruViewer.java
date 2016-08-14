@@ -186,6 +186,7 @@ public class MoebooruViewer{
         }
 
         Runnable task = netIO.createDownloadTask(localFile, url, taskPanel);
+        taskPanel.setTask(task);
         executor.execute(task);
     }
 
