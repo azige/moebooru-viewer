@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +75,7 @@ public class MoebooruAPI{
             JsonNode posts = root.get("posts");
             Map<Integer, Post> postMap = StreamSupport.stream(posts.spliterator(), false)
                 .map(post -> mapper.convertValue(post, Post.class))
-                .collect(Collectors.toMap(Post::getId, Function.identity()));
+                .collect(Collectors.toMap(Post::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
             JsonNode pools = root.get("pools");
             Map<Integer, Pool> poolMap = StreamSupport.stream(pools.spliterator(), false)
                 .map(pool -> mapper.convertValue(pool, Pool.class))
