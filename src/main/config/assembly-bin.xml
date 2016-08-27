@@ -31,6 +31,16 @@
             <fileMode>755</fileMode>
         </file>
     </files>
+    <fileSets>
+        <fileSet>
+            <includes>
+                <include>LICENSE</include>
+                <include>NOTICE</include>
+                <include>README.md</include>
+                <include>README_cn.md</include>
+            </includes>
+        </fileSet>
+    </fileSets>
     <dependencySets>
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
