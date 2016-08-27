@@ -33,6 +33,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.impl.SimpleLogger;
 
 /**
  *
@@ -49,6 +50,7 @@ public class MoebooruAPITest{
 
     @BeforeClass
     public static void setUpClass(){
+        System.setProperty(SimpleLogger.LOG_FILE_KEY, "System.err");
     }
 
     @AfterClass
