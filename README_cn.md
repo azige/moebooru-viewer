@@ -16,8 +16,7 @@
 
 因为打包了 JRE，分发的文件容量比较大，放到度盘了 http://pan.baidu.com/s/1qWJ3RNe
 
-根据你的操作系统下载 moebooru-viewer-0.3-wtih-runtime-win64.zip 或
-moebooru-viewer-0.3-wtih-runtime-win32.zip 解压，运行 MoebooruViewer.exe
+根据你的操作系统下载 -win64.zip 或 -win32.zip 后缀的文件解压，运行 MoebooruViewer.exe
 
 ！！！已知问题：路径中含有中文的时候不能正常运行！！！
 
@@ -26,9 +25,17 @@ moebooru-viewer-0.3-wtih-runtime-win32.zip 解压，运行 MoebooruViewer.exe
 
 ## 履历
 
-v0.4（计划中）
+v1.0（计划中）
+* 设置网络代理
+* 自动更新？
+* UI优化
+* 下载优化
+
+v0.4
 * 加入读取投稿池（Pool）的功能
 * 加入标签收藏功能
+* 加入下载管理器
+* 修复一些小问题
 
 v0.3
 * 在浏览投稿的标签页里加入了投稿来源的链接，加入了关联投稿（父投稿和子投稿）的信息及链接

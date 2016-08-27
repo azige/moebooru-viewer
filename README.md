@@ -17,3 +17,5 @@ A [Moebooru](https://github.com/moebooru/moebooru) client on Java. It's able to 
 ## Usage
 
 Check [Release](https://github.com/azige/moebooru-viewer/releases) for latest version. If you don't have Java Runtime on your system, browse [java.com](http://java.com) to download and install it.
+
+Extract files from the archive you downloaded. Then execute the script `run.bat` or `run.sh` (base on your OS) to start up the application. The script should works if you installed Java Runtime correctly.
