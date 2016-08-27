@@ -23,7 +23,11 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -61,8 +65,9 @@ public class MoebooruAPITest{
 
     @Test
     public void testListPostsWithPool() throws IOException{
-        // pool_post.json comes from https://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094
-        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094"))).thenReturn(getClass().getResourceAsStream("/pool_post.json"));
+        // postV2_pool4094.json comes from https://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094
+        String resourceName = "/postV2_pool4094.json";
+        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094"))).thenReturn(getClass().getResourceAsStream(resourceName));
 
         List<Post> posts = mapi.listPosts(1, 5, "pool:4094");
         assertThat(posts.size(), is(5));
@@ -75,5 +80,23 @@ public class MoebooruAPITest{
             hasProperty("id", is(4094)),
             hasProperty("name", is("Otona_no_Moeoh_2016-Summer_-_Chotto_Daitanna_Mizugi_Hon"))
         ));
+    }
+
+    @Test
+    public void testListPostsOrder() throws IOException{
+        String resourceName = "/postV2_limit100.json";
+        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=100&tags="))).thenReturn(getClass().getResourceAsStream(resourceName));
+
+        List<Post> posts = mapi.listPosts(1, 100);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode postNode = mapper.readTree(getClass().getResourceAsStream(resourceName)).get("posts");
+
+        List<Integer> originalIdList = StreamSupport.stream(postNode.spliterator(), false)
+            .map(node -> node.get("id").asInt())
+            .collect(Collectors.toList());
+        List<Integer> convertedIdList = posts.stream()
+            .map(post -> post.getId())
+            .collect(Collectors.toList());
+        assertThat(convertedIdList, is(equalTo(originalIdList)));
     }
 }
