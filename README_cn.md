@@ -14,14 +14,11 @@
 
 ## 使用方法
 
-因为打包了 JRE，分发的文件容量比较大，放到度盘了 http://pan.baidu.com/s/1qWJ3RNe
+度盘→ http://pan.baidu.com/s/1qWJ3RNe
 
-根据你的操作系统下载 -win64.zip 或 -win32.zip 后缀的文件解压，运行 MoebooruViewer.exe
+可以选择附带 JRE 的压缩包，或者下载比较小的那个，然后去 http://java.com/download 下载并安装 Java 运行环境。
 
-！！！已知问题：路径中含有中文的时候不能正常运行！！！
-
-如果还有其它问题，可以尝试去 http://java.com/ 下载并安装 Java 运行环境，
-然后双击 app 目录中的 moebooru-viewer.jar 来运行
+解压后运行 MoebooruViewer.exe
 
 ## 履历
 
@@ -30,6 +27,9 @@ v1.0（计划中）
 * 自动更新？
 * UI优化
 * 下载优化
+
+v0.5
+* 更改软件打包的方式
 
 v0.4
 * 加入读取投稿池（Pool）的功能
@@ -59,8 +59,4 @@ v0.1
 
 检查 http://pan.baidu.com/s/1qWJ3RNe
 
-如果有新版本的 -update-package.zip，下载并解压覆盖到原本的目录里（理论上）即可。
-
-如果更新包不好用的话下载完整的程序包解压覆盖到原本的目录（理论上）也可以。
-
-不想要之前的缓存和用户设置的话直接把旧版本删了换新版本即可。
+如果有新版本的的压缩包，下载后覆盖旧目录即可。除非特别说明，否则不需要下载带 JRE 的压缩包。
