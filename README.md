@@ -16,6 +16,6 @@ A [Moebooru](https://github.com/moebooru/moebooru) client on Java. It's able to 
 
 ## Usage
 
-Check [Release](https://github.com/azige/moebooru-viewer/releases) for latest version. If you don't have Java Runtime on your system, browse [java.com](http://java.com) to download and install it.
+Check [Release](https://github.com/azige/moebooru-viewer/releases) for latest version. If you don't have Java Runtime on your system, browse [java.com](http://java.com) to download and install it. The application needs Java 8 or newer.
 
 Extract files from the archive you downloaded. Then execute `MoebooruViewer.exe` or `MoebooruViewer.sh` (base on your OS) to start up the application. The application should start up if you installed Java Runtime correctly.
