@@ -15,6 +15,7 @@
             <destName>lib/${project.artifactId}.jar</destName>
             <outputDirectory>/</outputDirectory>
         </file>
+        <!--
         <file>
             <source>src/main/assembly/run.bat</source>
             <destName>run.bat</destName>
@@ -22,13 +23,18 @@
             <filtered>true</filtered>
             <lineEnding>dos</lineEnding>
         </file>
+        -->
         <file>
             <source>src/main/assembly/run.sh</source>
-            <destName>run.sh</destName>
+            <destName>MoebooruViewer.sh</destName>
             <outputDirectory>/</outputDirectory>
             <filtered>true</filtered>
             <lineEnding>unix</lineEnding>
             <fileMode>755</fileMode>
+        </file>
+        <file>
+            <source>${project.build.directory}/MoebooruViewer.exe</source>
+            <outputDirectory>/</outputDirectory>
         </file>
     </files>
     <fileSets>

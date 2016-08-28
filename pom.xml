@@ -98,6 +98,31 @@
                 </resources>
                 <plugins>
                     <plugin>
+                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                        <artifactId>launch4j-maven-plugin</artifactId>
+                        <version>1.7.6</version>
+                        <executions>
+                            <execution>
+                                <id>l4j</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>launch4j</goal>
+                                </goals>
+                                <configuration>
+                                    <dontWrapJar>true</dontWrapJar>
+                                    <headerType>gui</headerType>
+                                    <jar>lib/${project.artifactId}.jar</jar>
+                                    <outfile>${project.build.directory}/MoebooruViewer.exe</outfile>
+                                    <chdir>-</chdir>
+                                    <icon>${basedir}/yande.re.ico</icon>
+                                    <jre>
+                                        <minVersion>1.8.0</minVersion>
+                                    </jre>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <version>2.4</version>
@@ -113,7 +138,6 @@
                         <configuration>
                             <descriptors>
                                 <descriptor>src/main/config/assembly-bin.xml</descriptor>
-                                <descriptor>src/main/config/assembly-update-package.xml</descriptor>
                             </descriptors>
                             <finalName>${releaseName}</finalName>
                         </configuration>
