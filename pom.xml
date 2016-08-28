@@ -33,6 +33,11 @@
             <artifactId>spring-context</artifactId>
             <version>4.2.1.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
 
         <!-- For test -->
         <dependency>

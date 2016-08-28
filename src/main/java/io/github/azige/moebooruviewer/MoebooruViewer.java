@@ -243,24 +243,23 @@ public class MoebooruViewer{
         if (setting == null){
             setting = UserSetting.createDefaultSetting();
         }
-        if (setting.getLookAndFeel() != null){
-            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()){
-                if (setting.getLookAndFeel().equals(info.getName())){
-                    try{
-                        UIManager.setLookAndFeel(info.getClassName());
-                        break;
-                    }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
-                        logger.warn("设置 L&F 时出错", ex);
-                    }
+        {
+            boolean success = false;
+            if (setting.getLookAndFeel() != null){
+                try{
+                    UIManager.setLookAndFeel(setting.getLookAndFeel());
+                    success = true;
+                }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
+                    logger.warn("设置 L&F 时出错", ex);
                 }
             }
-        }else{
-            try{
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                LookAndFeel laf = UIManager.getLookAndFeel();
-                setting.setLookAndFeel(laf.getName());
-            }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
-                logger.warn("设置 L&F 时出错", ex);
+            if (!success){
+                try{
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    setting.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
+                    logger.warn("设置系统默认 L&F 时出错", ex);
+                }
             }
         }
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -16,9 +17,9 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.text.html.HTMLDocument;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class ConfigDialog extends javax.swing.JDialog{
     private List<JTextField> saveNames;
     private List<JTextField> savePaths;
     private JFileChooser fileChooser = new JFileChooser();
+    private BiMap<String, String> lafNameToClassNameMap;
 
     /**
      * Creates new form ConfigDialog
@@ -60,13 +62,11 @@ public class ConfigDialog extends javax.swing.JDialog{
 
     @PostConstruct
     private void init(){
+        lafNameToClassNameMap = Stream.of(UIManager.getInstalledLookAndFeels())
+            .collect(Collectors.toMap(info -> info.getName(), info -> info.getClassName(), (a,b) -> a, HashBiMap::create));
         safeModeCheckBox.setSelected(userSetting.isSafeMode());
-        lafComboBox.setModel(new DefaultComboBoxModel<>(
-            Stream.of(UIManager.getInstalledLookAndFeels())
-            .map(LookAndFeelInfo::getName)
-            .toArray(String[]::new)
-        ));
-        lafComboBox.setSelectedItem(UIManager.getLookAndFeel().getName());
+        lafComboBox.setModel(new DefaultComboBoxModel<>(lafNameToClassNameMap.keySet().toArray()));
+        lafComboBox.setSelectedItem(lafNameToClassNameMap.inverse().get(userSetting.getLookAndFeel()));
         for (int i = 0; i < saveNames.size(); i++){
             saveNames.get(i).setText(userSetting.getSaveLocations().get(i).getName());
             savePaths.get(i).setText(userSetting.getSaveLocations().get(i).getLocation().toString());
@@ -498,7 +498,7 @@ public class ConfigDialog extends javax.swing.JDialog{
 
     private void saveSettings(){
         userSetting.setSafeMode(safeModeCheckBox.isSelected());
-        userSetting.setLookAndFeel((String)lafComboBox.getSelectedItem());
+        userSetting.setLookAndFeel(lafNameToClassNameMap.get((String)lafComboBox.getSelectedItem()));
 
         List<SaveLocation> saveLocations = new ArrayList<>();
         for (int i = 0; i < saveNames.size(); i++){

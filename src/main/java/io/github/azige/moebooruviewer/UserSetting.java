@@ -27,6 +27,10 @@ public class UserSetting{
     private LinkedHashSet<String> favoriteTags = new LinkedHashSet<>();
     private File lastSaveDir;
     private boolean safeMode = true;
+    /**
+     * Save the class name of L&F instead of the name of L&F.
+     * Since the names in LookAndFeelInfo and LookAndFeel may not match.
+     */
     private String LookAndFeel;
     private List<SaveLocation> saveLocations;
     private int pageSize;
