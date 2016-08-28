@@ -1,5 +1,7 @@
 language: java
 
+sudo: required
+
 jdk:
 - oraclejdk8
 
@@ -11,6 +13,8 @@ env:
   - RELEASE_NAME=moebooru-viewer-$TRAVIS_TAG
 
 before_deploy:
+    - sudo apt-get update
+    - sudo apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0
     - mvn -Prelease clean package -DskipTests=true -DreleaseName=$RELEASE_NAME
 
 deploy:
