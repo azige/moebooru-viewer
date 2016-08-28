@@ -9,6 +9,7 @@
         <format>zip</format>
         <format>tar.gz</format>
     </formats>
+    <baseDirectory>MoebooruViewer</baseDirectory>
     <files>
         <file>
             <source>${project.build.directory}/${project.build.finalName}.jar</source>
