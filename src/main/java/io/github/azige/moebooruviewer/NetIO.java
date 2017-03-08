@@ -268,7 +268,14 @@ public class NetIO{
                     dir.mkdirs();
                 }
                 Object flag = retry(() -> {
-                    try (InputStream input = openStream(new URL(url)); OutputStream output = new BufferedOutputStream(new FileOutputStream(localFile))){
+                    URL u;
+                    // URLs from konachan.net API does not contain protocol
+                    if (url.startsWith("//")){
+                        u = new URL("http:" + url);
+                    }else{
+                        u = new URL(url);
+                    }
+                    try (InputStream input = openStream(u); OutputStream output = new BufferedOutputStream(new FileOutputStream(localFile))){
                         IOUtils.copy(input, output);
                         logger.info("downloaded: {}", localFile);
                         return new Object();
