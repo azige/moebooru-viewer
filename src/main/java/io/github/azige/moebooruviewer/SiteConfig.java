@@ -14,7 +14,7 @@ import javax.imageio.ImageIO;
  */
 public enum SiteConfig{
 
-    KONACHAN("Konachan.com", "http://konachan.com", "/konachan.com.png"),
+    KONACHAN("Konachan.net", "http://konachan.net", "/konachan.com.png"),
     YANDERE("yande.re", "http://yande.re", "/yande.re.png");
 
     private String name;
