@@ -69,7 +69,7 @@ public class MoebooruAPI{
         String parameters = String.format("api_version=2&include_pools=1&page=%d&limit=%d&tags=%s", page, limit,
             Stream.of(tags).reduce((s1, s2) -> s1 + "+" + s2).orElse("")
         );
-        URL url = new URL(siteConfig.getRootUrl() + POSTS_PATH + "?" + parameters);
+        String url = siteConfig.getRootUrl() + POSTS_PATH + "?" + parameters;
         try (InputStream input = netIO.openStream(url)){
             JsonNode root = mapper.readTree(input);
             JsonNode posts = root.get("posts");
@@ -120,7 +120,7 @@ public class MoebooruAPI{
             return tag;
         }
         String parameters = String.format("name=%s", name);
-        URL url = new URL(siteConfig.getRootUrl() + TAG_PATH + "?" + parameters);
+        String url = siteConfig.getRootUrl() + TAG_PATH + "?" + parameters;
         try (InputStream input = netIO.openStream(url)){
             JsonNode tags = mapper.readTree(input);
             for (JsonNode tagNode : tags){
