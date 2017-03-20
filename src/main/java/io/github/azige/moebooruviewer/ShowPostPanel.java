@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
@@ -207,8 +208,11 @@ public class ShowPostPanel extends javax.swing.JPanel{
             originPanel.add(createDownloadLabel(sl, netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
         });
         samplePanel.add(createDownloadToLabel(netIO.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
-        jpegPanel.add(createDownloadToLabel(null, presentingPost.getSampleUrl()));
+        samplePanel.add(createCopyToClipboardLabel(presentingPost.getSampleUrl()));
+        jpegPanel.add(createDownloadToLabel(null, presentingPost.getJpegUrl()));
+        jpegPanel.add(createCopyToClipboardLabel(presentingPost.getJpegUrl()));
         originPanel.add(createDownloadToLabel(netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
+        originPanel.add(createCopyToClipboardLabel(presentingPost.getOriginUrl()));
 
         String source = presentingPost.getSource();
         if (source != null && source.startsWith("http")){
@@ -330,6 +334,32 @@ public class ShowPostPanel extends javax.swing.JPanel{
             public void mouseClicked(MouseEvent e){
                 if (SwingUtilities.isLeftMouseButton(e)){
                     downloadFileTo(label, localFile, url);
+                }
+            }
+
+        });
+        return label;
+    }
+
+    private JLabel createCopyToClipboardLabel(String url){
+        JLabel label = new JLabel(Localization.getString("copy_link_to_clipboard"));
+        label.setForeground(Color.WHITE);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // quick fix for that URLs from konachan.net API does not contain protocol
+        final String fixedUrl;
+        if (url.startsWith("//")){
+            fixedUrl = "http:" + url;
+        }else{
+            fixedUrl = url;
+        }
+        label.addMouseListener(new MouseAdapter(){
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if (SwingUtilities.isLeftMouseButton(e)){
+                    getToolkit().getSystemClipboard().setContents(new StringSelection(fixedUrl), null);
+                    JOptionPane.showMessageDialog(ShowPostPanel.this, Localization.getString("success"));
                 }
             }
 
