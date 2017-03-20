@@ -113,17 +113,21 @@ public class NetIO{
         });
     }
 
-    public InputStream openStream(URL url) throws IOException{
+    public InputStream openStream(String url) throws IOException{
         InputStream inputStream = openConnection(url).getInputStream();
         return inputStream;
     }
 
-    private URLConnection openConnection(URL url) throws IOException{
+    private URLConnection openConnection(String url) throws IOException{
         URL u;
+        // quick fix for that URLs from konachan.net API does not contain protocol
+        if (url.startsWith("//")){
+            url = "http:" + url;
+        }
         if (forceHttps){
-            u = new URL(url.toString().replace("http:", "https:"));
+            u = new URL(url.replace("http:", "https:"));
         }else{
-            u = url;
+            u = new URL(url);
         }
         logger.info("downloading: {}", u);
         URLConnection connection = u.openConnection();
@@ -197,7 +201,7 @@ public class NetIO{
         return () -> {
 
             try{
-                URLConnection connection = openConnection(new URL(url));
+                URLConnection connection = openConnection(url);
                 long contentLength = connection.getContentLengthLong();
 
                 // 64KB buffer
@@ -268,14 +272,7 @@ public class NetIO{
                     dir.mkdirs();
                 }
                 Object flag = retry(() -> {
-                    URL u;
-                    // URLs from konachan.net API does not contain protocol
-                    if (url.startsWith("//")){
-                        u = new URL("http:" + url);
-                    }else{
-                        u = new URL(url);
-                    }
-                    try (InputStream input = openStream(u); OutputStream output = new BufferedOutputStream(new FileOutputStream(localFile))){
+                    try (InputStream input = openStream(url); OutputStream output = new BufferedOutputStream(new FileOutputStream(localFile))){
                         IOUtils.copy(input, output);
                         logger.info("downloaded: {}", localFile);
                         return new Object();

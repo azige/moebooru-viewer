@@ -69,7 +69,7 @@ public class MoebooruAPITest{
     public void testListPostsWithPool() throws IOException{
         // postV2_pool4094.json comes from https://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094
         String resourceName = "/postV2_pool4094.json";
-        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094"))).thenReturn(getClass().getResourceAsStream(resourceName));
+        when(netIO.openStream("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094")).thenReturn(getClass().getResourceAsStream(resourceName));
 
         List<Post> posts = mapi.listPosts(1, 5, "pool:4094");
         assertThat(posts.size(), is(5));
@@ -87,7 +87,7 @@ public class MoebooruAPITest{
     @Test
     public void testListPostsOrder() throws IOException{
         String resourceName = "/postV2_limit100.json";
-        when(netIO.openStream(new URL("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=100&tags="))).thenReturn(getClass().getResourceAsStream(resourceName));
+        when(netIO.openStream("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=100&tags=")).thenReturn(getClass().getResourceAsStream(resourceName));
 
         List<Post> posts = mapi.listPosts(1, 100);
         ObjectMapper mapper = new ObjectMapper();
