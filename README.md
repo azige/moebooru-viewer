@@ -1,5 +1,7 @@
 # Moebooru Viewer
 
+[![Build Status](https://travis-ci.org/azige/moebooru-viewer.svg?branch=master)](https://travis-ci.org/azige/moebooru-viewer)
+
 *As the name reads*
 
 [中文点这里](https://github.com/azige/moebooru-viewer/blob/master/README_cn.md)
