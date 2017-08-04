@@ -3,6 +3,11 @@
  */
 package io.github.azige.moebooruviewer;
 
+import io.github.azige.moebooruviewer.ui.DownloadTaskPanel;
+import io.github.azige.moebooruviewer.ui.ListPostFrame;
+import io.github.azige.moebooruviewer.ui.DownloadManagerFrame;
+import io.github.azige.moebooruviewer.ui.ShowPostFrame;
+
 import java.awt.Dialog.ModalityType;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

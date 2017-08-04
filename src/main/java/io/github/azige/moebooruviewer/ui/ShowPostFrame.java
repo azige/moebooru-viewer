@@ -1,7 +1,10 @@
 /*
  * Created 2015-11-28 21:56:59
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.ui;
+
+import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.Post;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -18,8 +21,10 @@ import javax.swing.ImageIcon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import io.github.azige.moebooruviewer.ShowPostPanel.LoadingEvent;
-import io.github.azige.moebooruviewer.ShowPostPanel.LoadingListener;
+import io.github.azige.moebooruviewer.ui.ShowPostPanel.LoadingEvent;
+import io.github.azige.moebooruviewer.ui.ShowPostPanel.LoadingListener;
+import io.github.azige.moebooruviewer.SiteConfig;
+import io.github.azige.moebooruviewer.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,7 +145,6 @@ public class ShowPostFrame extends javax.swing.JFrame{
         setTitle(Localization.getString("post")); // NOI18N
         setMinimumSize(new java.awt.Dimension(800, 650));
         setName(""); // NOI18N
-        setPreferredSize(new java.awt.Dimension(800, 650));
         getContentPane().add(tabbedPane, java.awt.BorderLayout.CENTER);
 
         pack();

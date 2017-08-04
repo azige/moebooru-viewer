@@ -1,7 +1,16 @@
 /*
  * Created 2015-11-27 23:32:57
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.ui;
+
+import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.MoebooruAPI;
+import io.github.azige.moebooruviewer.MoebooruViewer;
+import io.github.azige.moebooruviewer.NetIO;
+import io.github.azige.moebooruviewer.Post;
+import io.github.azige.moebooruviewer.SiteConfig;
+import io.github.azige.moebooruviewer.UserSetting;
+import io.github.azige.moebooruviewer.Utils;
 
 import java.awt.Color;
 import java.awt.Container;

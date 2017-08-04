@@ -1,7 +1,7 @@
 /*
  * Created 2016-6-19 23:19:39
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.ui;
 
 import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;

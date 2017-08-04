@@ -14,7 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.ui;
+
+import io.github.azige.moebooruviewer.Localization;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -76,8 +78,8 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadLis
         taskNameLabel.setText("file name"); // NOI18N
         taskNameLabel.setMaximumSize(new java.awt.Dimension(100, 15));
 
-        progressLabel.setText("0%");
-        progressLabel.setToolTipText("");
+        progressLabel.setText("null");
+        progressLabel.setToolTipText("null");
         progressLabel.setPreferredSize(new java.awt.Dimension(50, 15));
 
         openButton.setText(Localization.getString("open")); // NOI18N

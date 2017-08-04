@@ -1,7 +1,7 @@
 /*
  * Created 2015-11-29 14:29:53
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.ui;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;

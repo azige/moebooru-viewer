@@ -1,7 +1,15 @@
 /*
  * Created 2015-11-30 23:35:10
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.ui;
+
+import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.MoebooruAPI;
+import io.github.azige.moebooruviewer.MoebooruViewer;
+import io.github.azige.moebooruviewer.NetIO;
+import io.github.azige.moebooruviewer.Post;
+import io.github.azige.moebooruviewer.Tag;
+import io.github.azige.moebooruviewer.UserSetting;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -37,6 +45,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
+import io.github.azige.moebooruviewer.Utils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
