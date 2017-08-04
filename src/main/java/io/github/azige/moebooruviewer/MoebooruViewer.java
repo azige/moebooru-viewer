@@ -53,16 +53,10 @@ import org.springframework.stereotype.Component;
  *
  * @author Azige
  */
-@Configuration
-@ComponentScan
 @Component
 public class MoebooruViewer{
 
     private static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
-
-    private static final String TAG_FILE_NAME = "tags.json";
-    private static final String SETTING_FILE_NAME = "user-settings.xml";
-    private static final int THREAD_POOL_SIZE = 10;
 
     @Autowired
     private AnnotationConfigApplicationContext context;
@@ -89,7 +83,28 @@ public class MoebooruViewer{
     @PostConstruct
     private void init(){
         logger.info("init");
-        File tagFile = new File(siteConfig.getName(), TAG_FILE_NAME);
+
+        {
+            boolean success = false;
+            if (userSetting.getLookAndFeel() != null){
+                try{
+                    UIManager.setLookAndFeel(userSetting.getLookAndFeel());
+                    success = true;
+                }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
+                    logger.warn("设置 L&F 时出错", ex);
+                }
+            }
+            if (!success){
+                try{
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    userSetting.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
+                    logger.warn("设置系统默认 L&F 时出错", ex);
+                }
+            }
+        }
+
+        File tagFile = new File(siteConfig.getName(), MoebooruViewerConstants.TAG_FILE_NAME);
         if (tagFile.exists()){
             ObjectMapper mapper = new ObjectMapper();
             try{
@@ -166,7 +181,7 @@ public class MoebooruViewer{
         context.close();
 
         userSetting.setSiteConfig(siteConfig);
-        ApplicationContext context = buildContext(userSetting);
+        ApplicationContext context = buildContext();
         context.getBean(MoebooruViewer.class).listPosts();
     }
 
@@ -210,24 +225,19 @@ public class MoebooruViewer{
             }catch (InterruptedException ex){
             }
             ObjectMapper mapper = new ObjectMapper();
-            File tagFile = new File(siteConfig.getName(), TAG_FILE_NAME);
+            File tagFile = new File(siteConfig.getName(), MoebooruViewerConstants.TAG_FILE_NAME);
             try{
                 mapper.writeValue(tagFile, mapi.getTagMap());
             }catch (IOException ex){
                 logger.warn("无法读取tag记录文件", ex);
             }
-            JAXB.marshal(userSetting, new File(SETTING_FILE_NAME));
+            JAXB.marshal(userSetting, new File(MoebooruViewerConstants.SETTING_FILE_NAME));
         }).start();
     }
 
-    private static ApplicationContext buildContext(UserSetting userSetting){
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.getBeanFactory().registerResolvableDependency(ExecutorService.class, Executors.newFixedThreadPool(THREAD_POOL_SIZE));
-        context.getBeanFactory().registerResolvableDependency(SiteConfig.class, userSetting.getSiteConfig());
-        context.getBeanFactory().registerResolvableDependency(UserSetting.class, userSetting);
-        context.register(MoebooruViewer.class);
+    private static ApplicationContext buildContext(){
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MoebooruViewerConfig.class);
         context.registerShutdownHook();
-        context.refresh();
         return context;
     }
 
@@ -235,38 +245,6 @@ public class MoebooruViewer{
      * @param args the command line arguments
      */
     public static void main(String args[]){
-        UserSetting setting = null;
-        File settingFile = new File(SETTING_FILE_NAME);
-        if (settingFile.exists()){
-            try{
-                setting = JAXB.unmarshal(settingFile, UserSetting.class);
-                setting.verifyAndRepair();
-            }catch (RuntimeException ex){
-                logger.warn("读取用户配置文件出错", ex);
-            }
-        }
-        if (setting == null){
-            setting = UserSetting.createDefaultSetting();
-        }
-        {
-            boolean success = false;
-            if (setting.getLookAndFeel() != null){
-                try{
-                    UIManager.setLookAndFeel(setting.getLookAndFeel());
-                    success = true;
-                }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
-                    logger.warn("设置 L&F 时出错", ex);
-                }
-            }
-            if (!success){
-                try{
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    setting.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                }catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex){
-                    logger.warn("设置系统默认 L&F 时出错", ex);
-                }
-            }
-        }
 
         UIManager.put("OptionPane.yesButtonText", Localization.getString("yes"));
         UIManager.put("OptionPane.noButtonText", Localization.getString("no"));
@@ -280,7 +258,7 @@ public class MoebooruViewer{
             }
         });
 
-        ApplicationContext context = buildContext(setting);
+        ApplicationContext context = buildContext();
         SwingUtilities.invokeLater(() -> {
             context.getBean(MoebooruViewer.class).listPosts();
         });
