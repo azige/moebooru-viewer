@@ -84,7 +84,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private Image image;
     private List<LoadingListener> loadingListeners = new ArrayList<>();
     private JFileChooser fileChooser = new JFileChooser();
-    private boolean needResizeImage = true;
+    private boolean needResizeImage = false;
     private Tag showingPopupMenuTag;
 
     static{
@@ -678,10 +678,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
     }
 
     public void showPost(Post post){
-
-        loadPost(post, false);
-
         presentingPost = post;
+        loadPost(post, false);
 
         postLabel.addMouseListener(new MouseAdapter(){
 
@@ -728,14 +726,16 @@ public class ShowPostPanel extends javax.swing.JPanel{
             @Override
             public void onComplete(File file){
                 image = Utils.loadImage(file);
-                if (presentingPost == post){
-                    if (image != null){
-                        showImage();
-                    }else{
-                        postLabel.setText(Localization.getString("unable_to_load"));
+                SwingUtilities.invokeLater(() -> {
+                    if (presentingPost == post){
+                        if (image != null){
+                            showImage();
+                        }else{
+                            postLabel.setText(Localization.getString("unable_to_load"));
+                        }
+                        loadingListeners.forEach(l -> l.done(new LoadingEvent()));
                     }
-                    loadingListeners.forEach(l -> l.done(new LoadingEvent()));
-                }
+                });
             }
         });
     }
