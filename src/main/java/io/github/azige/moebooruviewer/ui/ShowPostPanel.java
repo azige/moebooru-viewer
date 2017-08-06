@@ -47,6 +47,7 @@ import javax.swing.SwingUtilities;
 import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
 import io.github.azige.moebooruviewer.Utils;
+import io.github.azige.moebooruviewer.io.DownloadCallbackAdapter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -710,13 +711,23 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
     private void loadPost(Post post, boolean force){
         postLabel.setIcon(null);
-        postLabel.setText(Localization.getString("loading"));
+        String loadingText = Localization.getString("loading");
+        postLabel.setText(loadingText);
         loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
         image = null;
 
-        moebooruRepository.loadSampleAsync(post, image -> {
-            SwingUtilities.invokeLater(() -> {
-                this.image = image;
+        moebooruRepository.loadSampleAsync(post, !force, new DownloadCallbackAdapter(){
+            @Override
+            public void onProgress(double rate){
+                String progressText = String.format("%s %.2f%%", loadingText, rate * 100);
+                SwingUtilities.invokeLater(() -> {
+                    postLabel.setText(progressText);
+                });
+            }
+
+            @Override
+            public void onComplete(File file){
+                image = Utils.loadImage(file);
                 if (presentingPost == post){
                     if (image != null){
                         showImage();
@@ -725,7 +736,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
                     }
                     loadingListeners.forEach(l -> l.done(new LoadingEvent()));
                 }
-            });
+            }
         });
     }
 

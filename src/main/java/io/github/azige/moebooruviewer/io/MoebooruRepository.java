@@ -27,8 +27,8 @@ import java.net.URLDecoder;
 import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
-import javax.imageio.ImageIO;
 
+import io.github.azige.moebooruviewer.Utils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,8 @@ import org.springframework.stereotype.Component;
  * Representing a storage of Moebooru images.
  * The "storage" means a Moebooru site or a local cache.
  * <p>
- * Loading a image is to load a cached local file or download it from a Moebooru site.
+ * Loading a image is to load a cached local file or download it from a Moebooru
+ * site.
  *
  * @author Azige
  */
@@ -98,6 +99,12 @@ public class MoebooruRepository{
         loadImageAsync(post.getSampleUrl(), sampleFile, useCache, callback);
     }
 
+    public void loadSampleAsync(Post post, boolean useCache, DownloadCallback callback){
+        long id = post.getId();
+        File sampleFile = getSampleFile(post);
+        loadImageAsync(post.getSampleUrl(), sampleFile, useCache, callback);
+    }
+
     public File getOriginFile(Post post){
         try{
             return new File(originDir, URLDecoder.decode(post.getOriginUrl().replaceFirst(".*/", ""), "UTF-8"));
@@ -118,35 +125,25 @@ public class MoebooruRepository{
      * @param callback
      */
     public void loadImageAsync(String url, File localFile, boolean useCache, Consumer<Image> callback){
-        if (!useCache || !localFile.exists()){
-            netIO.downloadFileAsync(url, localFile, new DownloadCallbackAdapter(){
-                @Override
-                public void onComplete(File file){
-                    callback.accept(loadImage(file));
-                }
+        loadImageAsync(url, localFile, useCache, new DownloadCallbackAdapter(){
+            @Override
+            public void onComplete(File file){
+                callback.accept(Utils.loadImage(file));
+            }
 
-                @Override
-                public void onFail(Exception ex){
-                    callback.accept(null);
-                }
-            });
-        }else{
-            callback.accept(loadImage(localFile));
-        }
+            @Override
+            public void onFail(Exception ex){
+                callback.accept(null);
+            }
+        });
     }
 
-    private Image loadImage(File file){
-        for (int i = 0; i < 5; i++){
-            try{
-                // 偶尔有无法确认的 NullPointerException
-                synchronized (ImageIO.class){
-                    return ImageIO.read(file);
-                }
-            }catch (IOException ex){
-                LOG.warn("读取本地文件出错", ex);
-            }
+    public void loadImageAsync(String url, File localFile, boolean useCache, DownloadCallback callback){
+        if (!useCache || !localFile.exists()){
+            netIO.downloadFileAsync(url, localFile, callback);
+        }else{
+            callback.onComplete(localFile);
         }
-        return null;
     }
 
     public boolean cleanCache(){

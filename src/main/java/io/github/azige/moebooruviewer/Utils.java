@@ -5,9 +5,11 @@ package io.github.azige.moebooruviewer;
 
 import java.awt.Image;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLDecoder;
+
+import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,5 +49,19 @@ public class Utils{
             logger.error("URL编码异常", ex);
             return "unknown";
         }
+    }
+
+    public static Image loadImage(File file){
+        for (int i = 0; i < 5; i++){
+            try{
+                // 偶尔有无法确认的 NullPointerException
+                synchronized (ImageIO.class){
+                    return ImageIO.read(file);
+                }
+            }catch (IOException ex){
+                logger.warn("读取本地文件出错", ex);
+            }
+        }
+        return null;
     }
 }
