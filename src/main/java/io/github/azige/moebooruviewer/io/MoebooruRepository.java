@@ -107,12 +107,27 @@ public class MoebooruRepository{
         }
     }
 
+    /**
+     * Load a image asynchronously.
+     * The callback will be invoked with loaded image when succeeded
+     * or null when failed.
+     *
+     * @param url
+     * @param localFile
+     * @param useCache
+     * @param callback
+     */
     public void loadImageAsync(String url, File localFile, boolean useCache, Consumer<Image> callback){
         if (!useCache || !localFile.exists()){
             netIO.downloadFileAsync(url, localFile, new DownloadCallbackAdapter(){
                 @Override
                 public void onComplete(File file){
                     callback.accept(loadImage(file));
+                }
+
+                @Override
+                public void onFail(Exception ex){
+                    callback.accept(null);
                 }
             });
         }else{
