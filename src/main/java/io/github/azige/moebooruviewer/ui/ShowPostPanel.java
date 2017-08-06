@@ -228,11 +228,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         if (source != null && source.startsWith("http")){
             try{
 
-                // 转换 pixiv 来源的 URL
-                Matcher matcher = Pattern.compile(".+\\.pixiv\\.net.*/(\\d+)").matcher(source);
-                if (matcher.find()){
-                    source = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
-                }
+                source = convertSource(source);
 
                 URL url = new URL(source);
                 sourceLinkLabel.setText(url.getHost());
@@ -257,6 +253,31 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }else{
             sourcePanel.setVisible(false);
         }
+    }
+
+    /**
+     * 将特定的来源 URL 转换成可用的形式。
+     * 例如某些来源于 pixiv 的 URL 是其资源服务器上的文件，
+     * 而这些文件是无法从 pixiv 投稿页面以外的地方引用的。
+     */
+    private String convertSource(String source){
+
+        // 转换 pixiv 来源的 URL
+        Matcher matcher;
+
+        // 诸如 https://i2.pixiv.net/img-original/img/2016/10/08/00/51/39/59361141_p0.jpg 的来源
+        matcher = Pattern.compile(".+\\.pixiv\\.net.*/(\\d+)").matcher(source);
+        if (matcher.find()){
+            return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
+        }
+
+        // 诸如 https://i.pximg.net/img-original/img/2017/08/07/01/07/06/64267464_p0.jpg 的来源
+        matcher = Pattern.compile(".+\\.pximg\\.net.*/(\\d+)").matcher(source);
+        if (matcher.find()){
+            return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
+        }
+
+        return source;
     }
 
     private void initAssociatePanels(){
