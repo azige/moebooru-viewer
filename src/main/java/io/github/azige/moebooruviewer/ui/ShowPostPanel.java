@@ -6,7 +6,7 @@ package io.github.azige.moebooruviewer.ui;
 import io.github.azige.moebooruviewer.Localization;
 import io.github.azige.moebooruviewer.MoebooruAPI;
 import io.github.azige.moebooruviewer.MoebooruViewer;
-import io.github.azige.moebooruviewer.NetIO;
+import io.github.azige.moebooruviewer.io.NetIO;
 import io.github.azige.moebooruviewer.Post;
 import io.github.azige.moebooruviewer.Tag;
 import io.github.azige.moebooruviewer.UserSetting;
@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
 import io.github.azige.moebooruviewer.Utils;
 import org.apache.commons.io.FileUtils;
@@ -67,13 +68,11 @@ public class ShowPostPanel extends javax.swing.JPanel{
     @Autowired
     MoebooruViewer moebooruViewer;
     @Autowired
-    private ExecutorService executor;
-    @Autowired
     private MoebooruAPI mapi;
     @Autowired
-    private NetIO netIO;
-    @Autowired
     private UserSetting userSetting;
+    @Autowired
+    private MoebooruRepository moebooruRepository;
 
     private static final Map<Integer, Color> TAG_COLOR_MAP;
     private static final Color COLOR_SUCCESS = Color.decode("0x339900");
@@ -131,11 +130,12 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
     private void initTagPanel(){
         final int lineLimit = 25;
-        executor.execute(() -> {
+        // TODO: 使用更好的线程管理
+        new Thread(() -> {
             List<Tag> tags = new ArrayList<>();
             List<String> resolveFailedTagNames = new ArrayList<>();
             for (String tagName : presentingPost.getTags().split(" ")){
-                Tag tag = netIO.retry(() -> mapi.findTag(tagName));
+                Tag tag = mapi.findTag(tagName);
                 if (tag != null){
                     tags.add(tag);
                 }else{
@@ -207,20 +207,20 @@ public class ShowPostPanel extends javax.swing.JPanel{
                     tagPanel.add(label);
                 });
             });
-        });
+        }).start();
     }
 
     private void initToolPanel(){
         userSetting.getSaveLocations().forEach(sl -> {
-            samplePanel.add(createDownloadLabel(sl, netIO.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
+            samplePanel.add(createDownloadLabel(sl, moebooruRepository.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
             jpegPanel.add(createDownloadLabel(sl, null, presentingPost.getJpegUrl()));
-            originPanel.add(createDownloadLabel(sl, netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
+            originPanel.add(createDownloadLabel(sl, moebooruRepository.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
         });
-        samplePanel.add(createDownloadToLabel(netIO.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
+        samplePanel.add(createDownloadToLabel(moebooruRepository.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
         samplePanel.add(createCopyToClipboardLabel(presentingPost.getSampleUrl()));
         jpegPanel.add(createDownloadToLabel(null, presentingPost.getJpegUrl()));
         jpegPanel.add(createCopyToClipboardLabel(presentingPost.getJpegUrl()));
-        originPanel.add(createDownloadToLabel(netIO.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
+        originPanel.add(createDownloadToLabel(moebooruRepository.getOriginFile(presentingPost), presentingPost.getOriginUrl()));
         originPanel.add(createCopyToClipboardLabel(presentingPost.getOriginUrl()));
 
         String source = presentingPost.getSource();
@@ -714,8 +714,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
         image = null;
 
-        executor.execute(() -> {
-            Image image = netIO.loadSample(post, force);
+        moebooruRepository.loadSampleAsync(post, image -> {
             SwingUtilities.invokeLater(() -> {
                 this.image = image;
                 if (presentingPost == post){

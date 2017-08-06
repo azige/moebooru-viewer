@@ -3,6 +3,7 @@
  */
 package io.github.azige.moebooruviewer;
 
+import io.github.azige.moebooruviewer.io.NetIO;
 import io.github.azige.moebooruviewer.ui.DownloadTaskPanel;
 import io.github.azige.moebooruviewer.ui.ListPostFrame;
 import io.github.azige.moebooruviewer.ui.DownloadManagerFrame;
@@ -40,6 +41,7 @@ import javax.xml.bind.JAXB;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +78,7 @@ public class MoebooruViewer{
     private DownloadManagerFrame downloadFrame;
 
     private Set<ListPostFrame> listPostFrames = new HashSet<>();
+    private SiteConfig siteConfigToSwitch = null;
 
     public MoebooruViewer(){
     }
@@ -162,7 +165,7 @@ public class MoebooruViewer{
         dialog.setModalityType(ModalityType.MODELESS);
         dialog.setVisible(true);
         executor.execute(() -> {
-            List<Post> searchPosts = netIO.retry(() -> mapi.listPosts(1, 1, "id:" + id));
+            List<Post> searchPosts = mapi.listPosts(1, 1, "id:" + id);
             SwingUtilities.invokeLater(() -> {
                 if (dialog.isDisplayable()){
                     dialog.dispose();
@@ -178,9 +181,10 @@ public class MoebooruViewer{
     }
 
     public void switchSite(SiteConfig siteConfig){
+        userSetting.setSiteConfig(siteConfig);
+
         context.close();
 
-        userSetting.setSiteConfig(siteConfig);
         ApplicationContext context = buildContext();
         context.getBean(MoebooruViewer.class).listPosts();
     }
@@ -205,9 +209,7 @@ public class MoebooruViewer{
             downloadFrame.setVisible(true);
         }
 
-        Runnable task = netIO.createDownloadTask(localFile, url, taskPanel);
-        taskPanel.setTask(task);
-        executor.execute(task);
+        netIO.downloadFileAsync(url, localFile, taskPanel);
     }
 
     public void exit(){

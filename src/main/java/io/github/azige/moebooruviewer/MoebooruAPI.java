@@ -3,6 +3,8 @@
  */
 package io.github.azige.moebooruviewer;
 
+import io.github.azige.moebooruviewer.io.NetIO;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -65,13 +67,13 @@ public class MoebooruAPI{
         return listPosts(page, LIMIT, tags);
     }
 
-    public List<Post> listPosts(int page, int limit, String... tags) throws IOException{
+    public List<Post> listPosts(int page, int limit, String... tags){
         String parameters = String.format("api_version=2&include_pools=1&page=%d&limit=%d&tags=%s", page, limit,
             Stream.of(tags).reduce((s1, s2) -> s1 + "+" + s2).orElse("")
         );
         String url = siteConfig.getRootUrl() + POSTS_PATH + "?" + parameters;
-        try (InputStream input = netIO.openStream(url)){
-            JsonNode root = mapper.readTree(input);
+        try{
+            JsonNode root = mapper.readTree(netIO.download(url));
             JsonNode posts = root.get("posts");
             Map<Integer, Post> postMap = StreamSupport.stream(posts.spliterator(), false)
                 .map(post -> mapper.convertValue(post, Post.class))
@@ -90,6 +92,8 @@ public class MoebooruAPI{
                     }
                 });
             return new ArrayList<>(postMap.values());
+        }catch (IOException ex){
+            throw new RuntimeException(ex);
         }
     }
 
@@ -114,15 +118,15 @@ public class MoebooruAPI{
         this.tagMap = tagMap;
     }
 
-    public Tag findTag(String name) throws IOException{
+    public Tag findTag(String name){
         Tag tag = tagMap.get(name);
         if (tag != null){
             return tag;
         }
         String parameters = String.format("name=%s", name);
         String url = siteConfig.getRootUrl() + TAG_PATH + "?" + parameters;
-        try (InputStream input = netIO.openStream(url)){
-            JsonNode tags = mapper.readTree(input);
+        try{
+            JsonNode tags = mapper.readTree(netIO.download(url));
             for (JsonNode tagNode : tags){
                 tag = mapper.convertValue(tagNode, Tag.class);
                 if (tag.getName().equals(name)){
@@ -131,6 +135,8 @@ public class MoebooruAPI{
                 }
             }
             return null;
+        }catch (IOException ex){
+            throw new RuntimeException(ex);
         }
     }
 }

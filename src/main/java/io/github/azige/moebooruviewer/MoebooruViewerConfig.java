@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 /**
  *
@@ -69,5 +72,13 @@ public class MoebooruViewerConfig{
     @Bean
     public UserSetting userSetting(){
         return userSetting;
+    }
+
+    @Bean
+    public ClientHttpRequestFactory clientHttpRequestFactory(){
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(30_000);
+        requestFactory.setReadTimeout(30_000);
+        return requestFactory;
     }
 }

@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.swing.SwingUtilities;
 
-import io.github.azige.moebooruviewer.NetIO.DownloadListener;
+import io.github.azige.moebooruviewer.io.DownloadCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +39,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadListener{
+public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadCallback{
 
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTaskPanel.class);
 
     @Autowired
     private ExecutorService executor;
 
-    private File downloadFile;
-    private Runnable task;
+    File downloadFile;
 
     /**
      * Creates new form DownloadTaskPanel
@@ -160,8 +159,9 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadLis
     }//GEN-LAST:event_browseButtonActionPerformed
 
     private void retryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_retryButtonActionPerformed
-        retryButton.setEnabled(false);
-        executor.execute(task);
+        throw new UnsupportedOperationException();
+//        retryButton.setEnabled(false);
+//        executor.execute(task);
     }//GEN-LAST:event_retryButtonActionPerformed
 
     public void setTaskName(String fileName){
@@ -176,10 +176,6 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadLis
 
     public void setDownloadFile(File downloadFile){
         this.downloadFile = downloadFile;
-    }
-
-    public void setTask(Runnable task){
-        this.task = task;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -202,7 +198,7 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadLis
     }
 
     @Override
-    public void onComplete(){
+    public void onComplete(File file){
         SwingUtilities.invokeLater(() -> {
             progressBar.setValue(100);
             progressLabel.setText(Localization.getString("done"));
@@ -212,7 +208,7 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadLis
     }
 
     @Override
-    public void onFail(){
+    public void onFail(Exception ex){
         SwingUtilities.invokeLater(() -> {
             progressLabel.setText(Localization.getString("failed"));
             retryButton.setEnabled(true);

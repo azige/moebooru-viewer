@@ -6,7 +6,7 @@ package io.github.azige.moebooruviewer.ui;
 import io.github.azige.moebooruviewer.Localization;
 import io.github.azige.moebooruviewer.MoebooruAPI;
 import io.github.azige.moebooruviewer.MoebooruViewer;
-import io.github.azige.moebooruviewer.NetIO;
+import io.github.azige.moebooruviewer.io.NetIO;
 import io.github.azige.moebooruviewer.Post;
 import io.github.azige.moebooruviewer.SiteConfig;
 import io.github.azige.moebooruviewer.UserSetting;
@@ -37,6 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
+import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,15 +69,13 @@ public class ListPostFrame extends javax.swing.JFrame{
     @Autowired
     private MoebooruViewer moebooruViewer;
     @Autowired
-    private NetIO netIO;
-    @Autowired
-    private ExecutorService executor;
-    @Autowired
     private MoebooruAPI mapi;
     @Autowired
     private UserSetting userSetting;
     @Autowired
     private DownloadManagerFrame downloadManagerFrame;
+    @Autowired
+    private MoebooruRepository moebooruRepository;
 
     private int pageCount = 1;
     private Set<Post> posts = new HashSet<>();
@@ -170,8 +169,9 @@ public class ListPostFrame extends javax.swing.JFrame{
         loadMoreLabel.setText(Localization.getString("loading"));
         loadMoreLabel.setEnabled(false);
         refreshTitle();
-        executor.execute(() -> {
-            List<Post> postList = netIO.retry(() -> mapi.listPosts(pageCount, pageSize, tags));
+        // TODO: 使用更好的线程管理
+        new Thread(() -> {
+            List<Post> postList = mapi.listPosts(pageCount, pageSize, tags);
             SwingUtilities.invokeLater(() -> {
                 pageCount++;
                 postsPanel.remove(loadMoreLabel);
@@ -186,30 +186,21 @@ public class ListPostFrame extends javax.swing.JFrame{
                     label.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
                     label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                     label.setToolTipText(String.valueOf(post.getId()));
-                    if (netIO.getSampleFile(post).exists()){
+                    if (moebooruRepository.getSampleFile(post).exists()){
                         label.setBorder(new LineBorder(CACHED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
                     }
 
-                    // TODO: 整理这段代码
-                    class LoadImageTask implements Runnable{
-
-                        boolean force = false;
-
-                        @Override
-                        public void run(){
-                            Image image = netIO.loadPreview(post, force);
-                            SwingUtilities.invokeLater(() -> {
-                                if (image != null){
-                                    label.setText("");
-                                    Dimension size = label.getPreferredSize();
-                                    label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
-                                }else{
-                                    label.setText(Localization.getString("unable_to_load"));
-                                }
-                            });
-                        }
-
-                    }
+                    moebooruRepository.loadPreviewAsync(post, image -> {
+                        SwingUtilities.invokeLater(() -> {
+                            if (image != null){
+                                label.setText("");
+                                Dimension size = label.getPreferredSize();
+                                label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
+                            }else{
+                                label.setText(Localization.getString("unable_to_load"));
+                            }
+                        });
+                    });
 
                     label.addMouseListener(new MouseAdapter(){
 
@@ -240,8 +231,6 @@ public class ListPostFrame extends javax.swing.JFrame{
                         }
                     });
                     postsPanel.add(label);
-                    LoadImageTask task = new LoadImageTask();
-                    executor.execute(task);
                 }
                 postsPanel.add(loadMoreLabel);
                 if (!postList.isEmpty()){
@@ -251,7 +240,7 @@ public class ListPostFrame extends javax.swing.JFrame{
                     loadMoreLabel.setText(Localization.getString("no_more_items"));
                 }
             });
-        });
+        }).start();
     }
 
     public void clear(){
@@ -534,7 +523,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     }//GEN-LAST:event_configMenuItemActionPerformed
 
     private void cleanCacheMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanCacheMenuItemActionPerformed
-        if (netIO.cleanCache()){
+        if (moebooruRepository.cleanCache()){
             JOptionPane.showMessageDialog(this, Localization.getString("successfully_deleted"),
                 Localization.getString("success"), JOptionPane.INFORMATION_MESSAGE);
         }else{
@@ -549,8 +538,7 @@ public class ListPostFrame extends javax.swing.JFrame{
 
         JLabel label = showingPopupMenuLabel;
         Post post = showingPopupMenuPost;
-        executor.execute(() -> {
-            Image image = netIO.loadPreview(post, true);
+        moebooruRepository.loadPreviewAsync(post, false, image -> {
             SwingUtilities.invokeLater(() -> {
                 if (image != null){
                     label.setText("");
