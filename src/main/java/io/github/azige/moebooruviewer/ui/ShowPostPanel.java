@@ -41,7 +41,7 @@ import io.github.azige.moebooruviewer.MoebooruViewer;
 import io.github.azige.moebooruviewer.Utils;
 import io.github.azige.moebooruviewer.config.UserSetting;
 import io.github.azige.moebooruviewer.config.UserSetting.SaveLocation;
-import io.github.azige.moebooruviewer.io.DownloadCallbackAdapter;
+import io.github.azige.moebooruviewer.io.EmptyDownloadCallback;
 import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import io.github.azige.moebooruviewer.model.Post;
 import io.github.azige.moebooruviewer.model.Tag;
@@ -732,7 +732,7 @@ public class ShowPostPanel extends javax.swing.JPanel {
         loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
         image = null;
 
-        moebooruRepository.loadSampleAsync(post, !force, new DownloadCallbackAdapter() {
+        moebooruRepository.loadSampleAsync(post, !force, new EmptyDownloadCallback() {
             @Override
             public void onProgress(double rate) {
                 String progressText = String.format("%s %.2f%%", loadingText, rate * 100);

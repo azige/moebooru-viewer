@@ -22,7 +22,7 @@ import java.io.File;
  *
  * @author Azige
  */
-public class DownloadCallbackAdapter implements DownloadCallback{
+public class EmptyDownloadCallback implements DownloadCallback{
 
     @Override
     public void onProgress(double rate){

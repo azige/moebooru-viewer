@@ -23,14 +23,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.function.Consumer;
 
-import javax.annotation.PostConstruct;
-
 import io.github.azige.moebooruviewer.Utils;
 import io.github.azige.moebooruviewer.config.SiteConfig;
 import io.github.azige.moebooruviewer.model.Post;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +43,7 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-public class MoebooruRepository {
+public class MoebooruRepository implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(MoebooruRepository.class);
 
@@ -62,8 +61,8 @@ public class MoebooruRepository {
     private File sampleDir;
     private File originDir;
 
-    @PostConstruct
-    private void init() {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         cacheDir = new File(siteConfig.getName());
         previewDir = new File(cacheDir, PREVIEW_DIR_NAME);
         sampleDir = new File(cacheDir, SAMPLE_DIR_NAME);
@@ -124,7 +123,7 @@ public class MoebooruRepository {
      * @param callback
      */
     public void loadImageAsync(String url, File localFile, boolean useCache, Consumer<Image> callback) {
-        loadImageAsync(url, localFile, useCache, new DownloadCallbackAdapter() {
+        loadImageAsync(url, localFile, useCache, new EmptyDownloadCallback() {
             @Override
             public void onComplete(File file) {
                 callback.accept(Utils.loadImage(file));

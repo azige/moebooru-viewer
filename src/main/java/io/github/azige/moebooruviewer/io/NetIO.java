@@ -10,27 +10,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -43,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-public class NetIO{
+public class NetIO implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(NetIO.class);
 
@@ -55,75 +50,54 @@ public class NetIO{
     private int maxRetryCount = 5;
     private boolean forceHttps = true;
     private boolean closed = false;
-    private ReferenceQueue<ClientHttpResponse> referenceQueue = new ReferenceQueue<>();
-    private Set<WeakReference<ClientHttpResponse>> responseRefs = Collections.synchronizedSet(new HashSet<>());
-    private Thread responseRefCleanThread;
+    private final Map<ClientHttpResponse, Void> responseWeakMap = Collections.synchronizedMap(new WeakHashMap<>());
 
-    public NetIO(){
+    public NetIO() {
     }
 
-    @PostConstruct
-    private void init(){
-        responseRefCleanThread = new Thread(() -> {
-            while (true){
-                try{
-                    Reference<? extends ClientHttpResponse> ref = referenceQueue.remove();
-                    responseRefs.remove(ref);
-                }catch (InterruptedException ex){
-                    return;
-                }
-            }
-        });
-        responseRefCleanThread.setName("Response references clean thread");
-        responseRefCleanThread.setDaemon(true);
-        responseRefCleanThread.start();
+    @Override
+    public void afterPropertiesSet() throws Exception {
     }
 
-    @PreDestroy
-    private void destroy(){
+    @Override
+    public void destroy() throws Exception {
         closed = true;
-        responseRefCleanThread.interrupt();
-        responseRefs.forEach(ref -> {
-            ClientHttpResponse response = ref.get();
-            if (response != null){
-                response.close();
-            }
-        });
+        responseWeakMap.keySet().forEach(ClientHttpResponse::close);
     }
 
-    private ClientHttpRequest createRequest(String url) throws IOException{
+    private ClientHttpRequest createRequest(String url) throws IOException {
         URL u;
         // quick fix for that URLs from konachan.net API does not contain protocol
-        if (url.startsWith("//")){
+        if (url.startsWith("//")) {
             url = "http:" + url;
         }
-        if (forceHttps){
+        if (forceHttps) {
             u = new URL(url.replace("http:", "https:"));
-        }else{
+        } else {
             u = new URL(url);
         }
-        try{
+        try {
             ClientHttpRequest request = requestFactory.createRequest(u.toURI(), HttpMethod.GET);
             logger.info("start downloading: {}", u);
             return request;
-        }catch (URISyntaxException ex){
+        } catch (URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public byte[] download(String url){
-        for (int retryCount = 0; retryCount < maxRetryCount; retryCount++){
-            try{
+    public byte[] download(String url) {
+        for (int retryCount = 0; retryCount < maxRetryCount; retryCount++) {
+            try {
                 ClientHttpRequest request = createRequest(url);
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
-                try (ClientHttpResponse response = request.execute()){
-                    responseRefs.add(new WeakReference<>(response, referenceQueue));
+                try (ClientHttpResponse response = request.execute()) {
+                    responseWeakMap.put(response, null);
                     InputStream input = response.getBody();
                     IOUtils.copy(input, output);
                 }
                 return output.toByteArray();
-            }catch (IOException ex){
-                if (ex instanceof SocketException && closed){
+            } catch (IOException ex) {
+                if (ex instanceof SocketException && closed) {
                     return null;
                 }
                 logger.info("IO异常，重试", ex);
@@ -133,30 +107,16 @@ public class NetIO{
         return null;
     }
 
-    public void downloadFile(String url, File fileToSave){
-        try{
-            downloadFileAsync(url, fileToSave, new DownloadCallbackAdapter()).get();
-        }catch (InterruptedException ex){
-            throw new RuntimeException(ex);
-        }catch (ExecutionException ex){
-            Throwable cause = ex.getCause();
-            if (cause instanceof RuntimeException){
-                throw (RuntimeException)cause;
-            }else{
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-
-    public Future<?> downloadFileAsync(String url, File fileToSave, DownloadCallback callback){
+    public Future<?> downloadFileAsync(String url, File fileToSave, DownloadCallback callback) {
         Objects.requireNonNull(url);
         Objects.requireNonNull(fileToSave);
         DownloadCallback cb;
-        if (callback == null){
-            cb = new DownloadCallbackAdapter();
-        }else{
+        if (callback == null) {
+            cb = new EmptyDownloadCallback();
+        } else {
             cb = callback;
         }
+
         return executorService.submit(() -> {
             long totalContentCount = -1;
             long downloadedCount = 0;
@@ -165,39 +125,39 @@ public class NetIO{
             int bufferSize = 1 << 16;
             byte[] buffer = new byte[bufferSize];
             File dir = fileToSave.getParentFile();
-            if (!dir.exists()){
+            if (!dir.exists()) {
                 dir.mkdirs();
             }
-            if (fileToSave.exists()){
+            if (fileToSave.exists()) {
                 fileToSave.delete();
             }
             Exception lastException = null;
-            for (int retryCount = 0; retryCount < maxRetryCount; retryCount++){
-                try{
+            for (int retryCount = 0; retryCount < maxRetryCount; retryCount++) {
+                try {
                     ClientHttpRequest request = createRequest(url);
-                    if (downloadedCount > 0){
+                    if (downloadedCount > 0) {
                         request.getHeaders().add(HttpHeaders.RANGE, "bytes=" + downloadedCount + "-");
                     }
                     // HTTP connecting can not be interrupted
-                    try (ClientHttpResponse response = request.execute()){
-                        if (closed){
+                    try (ClientHttpResponse response = request.execute()) {
+                        if (closed) {
                             logger.info("程序已终止");
                             return;
                         }
-                        responseRefs.add(new WeakReference<>(response, referenceQueue));
+                        responseWeakMap.put(response, null);
                         logger.info("response HTTP {} for {}", response.getRawStatusCode(), url);
-                        if (totalContentCount == -1){
+                        if (totalContentCount == -1) {
                             totalContentCount = Long.parseLong(response.getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH));
                         }
-                        try (InputStream input = new BufferedInputStream(response.getBody(), bufferSize); OutputStream output = new FileOutputStream(fileToSave, true)){
+                        try (InputStream input = new BufferedInputStream(response.getBody(), bufferSize); OutputStream output = new FileOutputStream(fileToSave, true)) {
                             int readCount;
-                            while ((readCount = input.read(buffer)) != -1){
+                            while ((readCount = input.read(buffer)) != -1) {
                                 output.write(buffer, 0, readCount);
                                 downloadedCount += readCount;
-                                double rate = (double)downloadedCount / totalContentCount;
-                                if (rate - currentRate > 0.01){
+                                double rate = (double) downloadedCount / totalContentCount;
+                                if (rate - currentRate > 0.01) {
                                     currentRate = rate;
-                                    cb.onProgress(currentRate);
+                                    cb.onProgress(rate);
                                 }
                             }
                         }
@@ -205,9 +165,9 @@ public class NetIO{
                     logger.info("downloaded: {} to {}", url, fileToSave);
                     cb.onComplete(fileToSave);
                     return;
-                }catch (IOException ex){
+                } catch (IOException ex) {
                     logger.info("IO异常", ex);
-                    if (closed){
+                    if (closed) {
                         logger.info("程序已终止，不再重试");
                         return;
                     }
