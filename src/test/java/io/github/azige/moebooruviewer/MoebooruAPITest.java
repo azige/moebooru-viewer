@@ -16,6 +16,9 @@
  */
 package io.github.azige.moebooruviewer;
 
+import io.github.azige.moebooruviewer.config.SiteConfig;
+import io.github.azige.moebooruviewer.model.Post;
+import io.github.azige.moebooruviewer.model.Pool;
 import io.github.azige.moebooruviewer.io.NetIO;
 
 import static org.junit.Assert.assertThat;

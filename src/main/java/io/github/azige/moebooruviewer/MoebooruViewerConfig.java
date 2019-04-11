@@ -22,12 +22,13 @@ import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXB;
 
+import io.github.azige.moebooruviewer.config.SiteConfig;
+import io.github.azige.moebooruviewer.config.UserSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
@@ -35,47 +36,46 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
  *
  * @author Azige
  */
-
 @Configuration
 @ComponentScan
-public class MoebooruViewerConfig{
+public class MoebooruViewerConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(MoebooruViewerConfig.class);
 
     private UserSetting userSetting = null;
 
-    public MoebooruViewerConfig(){
+    public MoebooruViewerConfig() {
         File settingFile = new File(MoebooruViewerConstants.SETTING_FILE_NAME);
-        if (settingFile.exists()){
-            try{
+        if (settingFile.exists()) {
+            try {
                 userSetting = JAXB.unmarshal(settingFile, UserSetting.class);
                 userSetting.verifyAndRepair();
-            }catch (RuntimeException ex){
+            } catch (RuntimeException ex) {
                 LOG.warn("读取用户配置文件出错", ex);
             }
         }
-        if (userSetting == null){
+        if (userSetting == null) {
             userSetting = UserSetting.createDefaultSetting();
         }
     }
 
     @Bean
-    public ExecutorService executorService(){
+    public ExecutorService executorService() {
         return Executors.newFixedThreadPool(MoebooruViewerConstants.DEFAULT_THREAD_POOL_SIZE);
     }
 
     @Bean
-    public SiteConfig siteConfig(){
+    public SiteConfig siteConfig() {
         return userSetting.getSiteConfig();
     }
 
     @Bean
-    public UserSetting userSetting(){
+    public UserSetting userSetting() {
         return userSetting;
     }
 
     @Bean
-    public ClientHttpRequestFactory clientHttpRequestFactory(){
+    public ClientHttpRequestFactory clientHttpRequestFactory() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(30_000);
         requestFactory.setReadTimeout(30_000);

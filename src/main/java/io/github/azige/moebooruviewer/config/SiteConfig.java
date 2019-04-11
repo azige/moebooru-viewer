@@ -1,7 +1,7 @@
 /*
  * Created 2015-12-3 20:35:58
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.config;
 
 import java.awt.Image;
 import java.io.IOException;

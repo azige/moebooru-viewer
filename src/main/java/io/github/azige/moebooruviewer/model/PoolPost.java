@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,26 +24,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Azige
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PoolPost{
+public class PoolPost {
 
     @JsonProperty(value = "post_id")
     private int postId;
     @JsonProperty(value = "pool_id")
     private int poolId;
 
-    public int getPostId(){
+    public int getPostId() {
         return postId;
     }
 
-    public void setPostId(int postId){
+    public void setPostId(int postId) {
         this.postId = postId;
     }
 
-    public int getPoolId(){
+    public int getPoolId() {
         return poolId;
     }
 
-    public void setPoolId(int poolId){
+    public void setPoolId(int poolId) {
         this.poolId = poolId;
     }
 }

@@ -16,9 +16,6 @@
  */
 package io.github.azige.moebooruviewer.io;
 
-import io.github.azige.moebooruviewer.Post;
-import io.github.azige.moebooruviewer.SiteConfig;
-
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +26,8 @@ import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 
 import io.github.azige.moebooruviewer.Utils;
+import io.github.azige.moebooruviewer.config.SiteConfig;
+import io.github.azige.moebooruviewer.model.Post;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-public class MoebooruRepository{
+public class MoebooruRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(MoebooruRepository.class);
 
@@ -64,51 +63,51 @@ public class MoebooruRepository{
     private File originDir;
 
     @PostConstruct
-    private void init(){
+    private void init() {
         cacheDir = new File(siteConfig.getName());
         previewDir = new File(cacheDir, PREVIEW_DIR_NAME);
         sampleDir = new File(cacheDir, SAMPLE_DIR_NAME);
         originDir = new File(cacheDir, ORIGIN_DIR_NAME);
     }
 
-    public File getPreviewFile(Post post){
+    public File getPreviewFile(Post post) {
         return new File(previewDir, post.getId() + ".jpg");
     }
 
-    public void loadPreviewAsync(Post post, Consumer<Image> callback){
+    public void loadPreviewAsync(Post post, Consumer<Image> callback) {
         loadPreviewAsync(post, true, callback);
     }
 
-    public void loadPreviewAsync(Post post, boolean useCache, Consumer<Image> callback){
+    public void loadPreviewAsync(Post post, boolean useCache, Consumer<Image> callback) {
         long id = post.getId();
         File previewFile = new File(previewDir, id + ".jpg");
         loadImageAsync(post.getPreviewUrl(), previewFile, useCache, callback);
     }
 
-    public File getSampleFile(Post post){
+    public File getSampleFile(Post post) {
         return new File(sampleDir, post.getId() + ".jpg");
     }
 
-    public void loadSampleAsync(Post post, Consumer<Image> callback){
+    public void loadSampleAsync(Post post, Consumer<Image> callback) {
         loadSampleAsync(post, true, callback);
     }
 
-    public void loadSampleAsync(Post post, boolean useCache, Consumer<Image> callback){
+    public void loadSampleAsync(Post post, boolean useCache, Consumer<Image> callback) {
         long id = post.getId();
         File sampleFile = getSampleFile(post);
         loadImageAsync(post.getSampleUrl(), sampleFile, useCache, callback);
     }
 
-    public void loadSampleAsync(Post post, boolean useCache, DownloadCallback callback){
+    public void loadSampleAsync(Post post, boolean useCache, DownloadCallback callback) {
         long id = post.getId();
         File sampleFile = getSampleFile(post);
         loadImageAsync(post.getSampleUrl(), sampleFile, useCache, callback);
     }
 
-    public File getOriginFile(Post post){
-        try{
+    public File getOriginFile(Post post) {
+        try {
             return new File(originDir, URLDecoder.decode(post.getOriginUrl().replaceFirst(".*/", ""), "UTF-8"));
-        }catch (UnsupportedEncodingException ex){
+        } catch (UnsupportedEncodingException ex) {
             LOG.error("URL编码异常", ex);
             return null;
         }
@@ -124,33 +123,33 @@ public class MoebooruRepository{
      * @param useCache
      * @param callback
      */
-    public void loadImageAsync(String url, File localFile, boolean useCache, Consumer<Image> callback){
-        loadImageAsync(url, localFile, useCache, new DownloadCallbackAdapter(){
+    public void loadImageAsync(String url, File localFile, boolean useCache, Consumer<Image> callback) {
+        loadImageAsync(url, localFile, useCache, new DownloadCallbackAdapter() {
             @Override
-            public void onComplete(File file){
+            public void onComplete(File file) {
                 callback.accept(Utils.loadImage(file));
             }
 
             @Override
-            public void onFail(Exception ex){
+            public void onFail(Exception ex) {
                 callback.accept(null);
             }
         });
     }
 
-    public void loadImageAsync(String url, File localFile, boolean useCache, DownloadCallback callback){
-        if (!useCache || !localFile.exists()){
+    public void loadImageAsync(String url, File localFile, boolean useCache, DownloadCallback callback) {
+        if (!useCache || !localFile.exists()) {
             netIO.downloadFileAsync(url, localFile, callback);
-        }else{
+        } else {
             callback.onComplete(localFile);
         }
     }
 
-    public boolean cleanCache(){
-        try{
+    public boolean cleanCache() {
+        try {
             FileUtils.deleteDirectory(cacheDir);
             return true;
-        }catch (IOException ex){
+        } catch (IOException ex) {
             LOG.warn("删除缓存目录失败！", ex);
             return false;
         }

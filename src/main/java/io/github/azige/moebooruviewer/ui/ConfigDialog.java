@@ -20,8 +20,8 @@ import javax.swing.UIManager;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import io.github.azige.moebooruviewer.UserSetting;
-import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
+import io.github.azige.moebooruviewer.config.UserSetting;
+import io.github.azige.moebooruviewer.config.UserSetting.SaveLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ConfigDialog extends javax.swing.JDialog{
+public class ConfigDialog extends javax.swing.JDialog {
 
     private Logger logger = LoggerFactory.getLogger(ConfigDialog.class);
     private final ResourceBundle messages = ResourceBundle.getBundle("io/github/azige/moebooruviewer/Settings");
@@ -51,7 +51,7 @@ public class ConfigDialog extends javax.swing.JDialog{
     /**
      * Creates new form ConfigDialog
      */
-    public ConfigDialog(){
+    public ConfigDialog() {
         initComponents();
 
         saveNames = Arrays.asList(saveNameTextField1, saveNameTextField2, saveNameTextField3, saveNameTextField4);
@@ -62,13 +62,13 @@ public class ConfigDialog extends javax.swing.JDialog{
     }
 
     @PostConstruct
-    private void init(){
+    private void init() {
         lafNameToClassNameMap = Stream.of(UIManager.getInstalledLookAndFeels())
-            .collect(Collectors.toMap(info -> info.getName(), info -> info.getClassName(), (a,b) -> a, HashBiMap::create));
+            .collect(Collectors.toMap(info -> info.getName(), info -> info.getClassName(), (a, b) -> a, HashBiMap::create));
         safeModeCheckBox.setSelected(userSetting.isSafeMode());
         lafComboBox.setModel(new DefaultComboBoxModel<>(lafNameToClassNameMap.keySet().toArray()));
         lafComboBox.setSelectedItem(lafNameToClassNameMap.inverse().get(userSetting.getLookAndFeel()));
-        for (int i = 0; i < saveNames.size(); i++){
+        for (int i = 0; i < saveNames.size(); i++) {
             saveNames.get(i).setText(userSetting.getSaveLocations().get(i).getName());
             savePaths.get(i).setText(userSetting.getSaveLocations().get(i).getLocation().toString());
         }
@@ -486,33 +486,33 @@ public class ConfigDialog extends javax.swing.JDialog{
 
     @PreDestroy
     @Override
-    public void dispose(){
+    public void dispose() {
         super.dispose();
     }
 
-    private void choosePath(JTextField pathField){
+    private void choosePath(JTextField pathField) {
         File current = new File(pathField.getText()).getAbsoluteFile();
         fileChooser.setSelectedFile(current);
-        if (fileChooser.showDialog(this, null) == JFileChooser.APPROVE_OPTION){
+        if (fileChooser.showDialog(this, null) == JFileChooser.APPROVE_OPTION) {
             pathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
         }
     }
 
-    private void saveSettings(){
+    private void saveSettings() {
         userSetting.setSafeMode(safeModeCheckBox.isSelected());
-        userSetting.setLookAndFeel(lafNameToClassNameMap.get((String)lafComboBox.getSelectedItem()));
+        userSetting.setLookAndFeel(lafNameToClassNameMap.get((String) lafComboBox.getSelectedItem()));
 
         List<SaveLocation> saveLocations = new ArrayList<>();
-        for (int i = 0; i < saveNames.size(); i++){
+        for (int i = 0; i < saveNames.size(); i++) {
             saveLocations.add(new SaveLocation(saveNames.get(i).getText(), new File(savePaths.get(i).getText()).getAbsoluteFile()));
         }
         userSetting.setSaveLocations(saveLocations);
 
-        try{
+        try {
             int pageSize = Integer.parseInt(pageSizeTextField.getText());
             pageSize = Math.max(1, Math.min(100, pageSize));
             userSetting.setPageSize(pageSize);
-        }catch (NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             logger.debug("数字格式错误", ex);
         }
     }

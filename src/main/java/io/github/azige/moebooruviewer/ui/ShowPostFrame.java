@@ -3,9 +3,6 @@
  */
 package io.github.azige.moebooruviewer.ui;
 
-import io.github.azige.moebooruviewer.Localization;
-import io.github.azige.moebooruviewer.Post;
-
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -21,10 +18,12 @@ import javax.swing.ImageIcon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.Utils;
+import io.github.azige.moebooruviewer.config.SiteConfig;
+import io.github.azige.moebooruviewer.model.Post;
 import io.github.azige.moebooruviewer.ui.ShowPostPanel.LoadingEvent;
 import io.github.azige.moebooruviewer.ui.ShowPostPanel.LoadingListener;
-import io.github.azige.moebooruviewer.SiteConfig;
-import io.github.azige.moebooruviewer.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-public class ShowPostFrame extends javax.swing.JFrame{
+public class ShowPostFrame extends javax.swing.JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(ShowPostFrame.class);
 
@@ -50,43 +49,43 @@ public class ShowPostFrame extends javax.swing.JFrame{
     /**
      * Creates new form PostFrame
      */
-    public ShowPostFrame(){
+    public ShowPostFrame() {
         initComponents();
-        tabbedPane.addChangeListener(new ChangeListener(){
+        tabbedPane.addChangeListener(new ChangeListener() {
 
             @Override
-            public void stateChanged(ChangeEvent e){
-                ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
-                if (postPanel != null && postPanel.isNeedResizeImage()){
+            public void stateChanged(ChangeEvent e) {
+                ShowPostPanel postPanel = (ShowPostPanel) tabbedPane.getSelectedComponent();
+                if (postPanel != null && postPanel.isNeedResizeImage()) {
                     postPanel.updateImage();
                 }
             }
         });
-        tabbedPane.addMouseListener(new MouseAdapter(){
+        tabbedPane.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mousePressed(MouseEvent e){
+            public void mousePressed(MouseEvent e) {
                 popupMenu(e);
             }
 
             @Override
-            public void mouseReleased(MouseEvent e){
+            public void mouseReleased(MouseEvent e) {
                 popupMenu(e);
             }
 
-            private void popupMenu(MouseEvent e){
-                if (e.isPopupTrigger()){
+            private void popupMenu(MouseEvent e) {
+                if (e.isPopupTrigger()) {
                     postPanePopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
 
         });
-        rootPane.addComponentListener(new ComponentAdapter(){
+        rootPane.addComponentListener(new ComponentAdapter() {
 
             @Override
-            public void componentResized(ComponentEvent e){
-                ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
-                if (postPanel != null){
+            public void componentResized(ComponentEvent e) {
+                ShowPostPanel postPanel = (ShowPostPanel) tabbedPane.getSelectedComponent();
+                if (postPanel != null) {
                     postPanel.updateImage();
                 }
             }
@@ -96,26 +95,26 @@ public class ShowPostFrame extends javax.swing.JFrame{
     }
 
     @Override
-    protected void processWindowEvent(WindowEvent e){
+    protected void processWindowEvent(WindowEvent e) {
         super.processWindowEvent(e);
-        if (e.getID() == WindowEvent.WINDOW_CLOSING){
+        if (e.getID() == WindowEvent.WINDOW_CLOSING) {
             tabbedPane.removeAll();
             postPanelMap.clear();
         }
     }
 
     @PostConstruct
-    public void init(){
-        try{
+    public void init() {
+        try {
             setIconImage(siteConfig.getIcon());
-        }catch (IOException ex){
+        } catch (IOException ex) {
             logger.info("无法设置图标", ex);
         }
     }
 
     @PreDestroy
     @Override
-    public void dispose(){
+    public void dispose() {
         super.dispose();
     }
 
@@ -151,32 +150,32 @@ public class ShowPostFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     private void closeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeMenuItemActionPerformed
-        ShowPostPanel postPanel = (ShowPostPanel)tabbedPane.getSelectedComponent();
+        ShowPostPanel postPanel = (ShowPostPanel) tabbedPane.getSelectedComponent();
         tabbedPane.remove(postPanel);
         postPanelMap.values().remove(postPanel);
-        if (postPanelMap.isEmpty()){
+        if (postPanelMap.isEmpty()) {
             setVisible(false);
         }
     }//GEN-LAST:event_closeMenuItemActionPerformed
 
-    public void showPost(Post post){
+    public void showPost(Post post) {
         setVisible(true);
         ShowPostPanel postPanel = postPanelMap.get(post.getId());
-        if (postPanel == null){
+        if (postPanel == null) {
             postPanel = context.getBean(ShowPostPanel.class);
-            postPanel.addLoadingListener(new LoadingListener(){
+            postPanel.addLoadingListener(new LoadingListener() {
 
                 @Override
-                public void loading(LoadingEvent event){
+                public void loading(LoadingEvent event) {
                     int index = tabbedPane.indexOfComponent(event.getSource());
                     tabbedPane.setTitleAt(index, post.getId() + "*"); //NOI18N
                     tabbedPane.setIconAt(index, null);
                 }
 
                 @Override
-                public void done(LoadingEvent event){
+                public void done(LoadingEvent event) {
                     int index = tabbedPane.indexOfComponent(event.getSource());
-                    if (tabbedPane.getIconAt(index) == null && event.getSource().getImage() != null){
+                    if (tabbedPane.getIconAt(index) == null && event.getSource().getImage() != null) {
                         tabbedPane.setIconAt(index, new ImageIcon(Utils.resizeImage(event.getSource().getImage(), 32, 32)));
                     }
                     tabbedPane.setTitleAt(index, String.valueOf(post.getId()));

@@ -3,14 +3,6 @@
  */
 package io.github.azige.moebooruviewer.ui;
 
-import io.github.azige.moebooruviewer.Localization;
-import io.github.azige.moebooruviewer.MoebooruAPI;
-import io.github.azige.moebooruviewer.MoebooruViewer;
-import io.github.azige.moebooruviewer.io.NetIO;
-import io.github.azige.moebooruviewer.Post;
-import io.github.azige.moebooruviewer.Tag;
-import io.github.azige.moebooruviewer.UserSetting;
-
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -32,7 +24,6 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,10 +35,16 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import io.github.azige.moebooruviewer.io.MoebooruRepository;
-import io.github.azige.moebooruviewer.UserSetting.SaveLocation;
+import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.MoebooruAPI;
+import io.github.azige.moebooruviewer.MoebooruViewer;
 import io.github.azige.moebooruviewer.Utils;
+import io.github.azige.moebooruviewer.config.UserSetting;
+import io.github.azige.moebooruviewer.config.UserSetting.SaveLocation;
 import io.github.azige.moebooruviewer.io.DownloadCallbackAdapter;
+import io.github.azige.moebooruviewer.io.MoebooruRepository;
+import io.github.azige.moebooruviewer.model.Post;
+import io.github.azige.moebooruviewer.model.Tag;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +59,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ShowPostPanel extends javax.swing.JPanel{
+public class ShowPostPanel extends javax.swing.JPanel {
 
     private static final Logger logger = LoggerFactory.getLogger(ShowPostPanel.class);
 
@@ -87,7 +84,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     private boolean needResizeImage = false;
     private Tag showingPopupMenuTag;
 
-    static{
+    static {
         TAG_COLOR_MAP = new HashMap<>();
         TAG_COLOR_MAP.put(Tag.TYPE_GENERAL, Color.decode("0xEE8887"));
         TAG_COLOR_MAP.put(Tag.TYPE_ARTIST, Color.decode("0xCCCC00"));
@@ -95,19 +92,19 @@ public class ShowPostPanel extends javax.swing.JPanel{
         TAG_COLOR_MAP.put(Tag.TYPE_CHARACTER, Color.decode("0x00AA00"));
     }
 
-    public class LoadingEvent extends EventObject{
+    public class LoadingEvent extends EventObject {
 
-        public LoadingEvent(){
+        public LoadingEvent() {
             super(ShowPostPanel.this);
         }
 
         @Override
-        public ShowPostPanel getSource(){
-            return (ShowPostPanel)super.getSource();
+        public ShowPostPanel getSource() {
+            return (ShowPostPanel) super.getSource();
         }
     }
 
-    public interface LoadingListener extends EventListener{
+    public interface LoadingListener extends EventListener {
 
         void loading(LoadingEvent event);
 
@@ -117,29 +114,29 @@ public class ShowPostPanel extends javax.swing.JPanel{
     /**
      * Creates new form ShowPostFramePanel
      */
-    public ShowPostPanel(){
+    public ShowPostPanel() {
         initComponents();
-        addComponentListener(new ComponentAdapter(){
+        addComponentListener(new ComponentAdapter() {
 
             @Override
-            public void componentResized(ComponentEvent e){
+            public void componentResized(ComponentEvent e) {
                 needResizeImage = true;
             }
 
         });
     }
 
-    private void initTagPanel(){
+    private void initTagPanel() {
         final int lineLimit = 25;
         // TODO: 使用更好的线程管理
         new Thread(() -> {
             List<Tag> tags = new ArrayList<>();
             List<String> resolveFailedTagNames = new ArrayList<>();
-            for (String tagName : presentingPost.getTags().split(" ")){
+            for (String tagName : presentingPost.getTags().split(" ")) {
                 Tag tag = mapi.findTag(tagName);
-                if (tag != null){
+                if (tag != null) {
                     tags.add(tag);
-                }else{
+                } else {
                     resolveFailedTagNames.add(tagName);
                 }
             }
@@ -147,8 +144,8 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 .collect(Collectors.groupingBy(Tag::getType));
 
             List<Tag> sortedTags = new ArrayList<>();
-            for (int type : new int[]{Tag.TYPE_ARTIST, Tag.TYPE_COPYRIGHT, Tag.TYPE_CHARACTER, Tag.TYPE_GENERAL}){
-                if (typeToTagsMap.containsKey(type)){
+            for (int type : new int[]{Tag.TYPE_ARTIST, Tag.TYPE_COPYRIGHT, Tag.TYPE_CHARACTER, Tag.TYPE_GENERAL}) {
+                if (typeToTagsMap.containsKey(type)) {
                     sortedTags.addAll(typeToTagsMap.get(type));
                     typeToTagsMap.remove(type);
                 }
@@ -160,10 +157,10 @@ public class ShowPostPanel extends javax.swing.JPanel{
                 sortedTags.forEach(tag -> {
                     String tagName = tag.getName();
                     String viewTagName = tagName.replaceAll("_", " ");
-                    if (viewTagName.length() > lineLimit){
+                    if (viewTagName.length() > lineLimit) {
                         StringBuilder targetBuilder = new StringBuilder("<html>");
                         StringBuilder sourceBuffer = new StringBuilder(viewTagName);
-                        while (sourceBuffer.length() > lineLimit){
+                        while (sourceBuffer.length() > lineLimit) {
                             targetBuilder.append(sourceBuffer, 0, lineLimit).append("<br/>");
                             sourceBuffer.delete(0, lineLimit);
                         }
@@ -174,32 +171,32 @@ public class ShowPostPanel extends javax.swing.JPanel{
                     JLabel label = new JLabel(viewTagName);
                     label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                     Color color = TAG_COLOR_MAP.get(tag.getType());
-                    if (color != null){
+                    if (color != null) {
                         label.setForeground(color);
-                    }else{
+                    } else {
                         label.setForeground(COLOR_UNKNOWN_TAG_TYPE);
                     }
-                    label.addMouseListener(new MouseAdapter(){
+                    label.addMouseListener(new MouseAdapter() {
 
                         @Override
-                        public void mousePressed(MouseEvent e){
+                        public void mousePressed(MouseEvent e) {
                             popupMenu(e);
                         }
 
                         @Override
-                        public void mouseReleased(MouseEvent e){
+                        public void mouseReleased(MouseEvent e) {
                             popupMenu(e);
                         }
 
                         @Override
-                        public void mouseClicked(MouseEvent e){
-                            if (SwingUtilities.isLeftMouseButton(e)){
+                        public void mouseClicked(MouseEvent e) {
+                            if (SwingUtilities.isLeftMouseButton(e)) {
                                 moebooruViewer.searchByTags(tagName);
                             }
                         }
 
-                        private void popupMenu(MouseEvent e){
-                            if (e.isPopupTrigger()){
+                        private void popupMenu(MouseEvent e) {
+                            if (e.isPopupTrigger()) {
                                 showingPopupMenuTag = tag;
                                 tagPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                             }
@@ -211,7 +208,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }).start();
     }
 
-    private void initToolPanel(){
+    private void initToolPanel() {
         userSetting.getSaveLocations().forEach(sl -> {
             samplePanel.add(createDownloadLabel(sl, moebooruRepository.getSampleFile(presentingPost), presentingPost.getSampleUrl()));
             jpegPanel.add(createDownloadLabel(sl, null, presentingPost.getJpegUrl()));
@@ -225,32 +222,32 @@ public class ShowPostPanel extends javax.swing.JPanel{
         originPanel.add(createCopyToClipboardLabel(presentingPost.getOriginUrl()));
 
         String source = presentingPost.getSource();
-        if (source != null && source.startsWith("http")){
-            try{
+        if (source != null && source.startsWith("http")) {
+            try {
 
                 source = convertSource(source);
 
                 URL url = new URL(source);
                 sourceLinkLabel.setText(url.getHost());
                 sourceLinkLabel.setToolTipText(url.toString());
-                sourceLinkLabel.addMouseListener(new MouseAdapter(){
+                sourceLinkLabel.addMouseListener(new MouseAdapter() {
 
                     @Override
-                    public void mouseClicked(MouseEvent e){
-                        if (SwingUtilities.isLeftMouseButton(e)){
-                            try{
+                    public void mouseClicked(MouseEvent e) {
+                        if (SwingUtilities.isLeftMouseButton(e)) {
+                            try {
                                 Desktop.getDesktop().browse(url.toURI());
-                            }catch (IOException | URISyntaxException ex){
+                            } catch (IOException | URISyntaxException ex) {
                                 logger.warn("无法浏览URL：" + url, ex);
                             }
                         }
                     }
                 });
-            }catch (MalformedURLException ex){
+            } catch (MalformedURLException ex) {
                 logger.info("URL格式错误", ex);
                 sourcePanel.setVisible(false);
             }
-        }else{
+        } else {
             sourcePanel.setVisible(false);
         }
     }
@@ -260,93 +257,93 @@ public class ShowPostPanel extends javax.swing.JPanel{
      * 例如某些来源于 pixiv 的 URL 是其资源服务器上的文件，
      * 而这些文件是无法从 pixiv 投稿页面以外的地方引用的。
      */
-    private String convertSource(String source){
+    private String convertSource(String source) {
 
         // 转换 pixiv 来源的 URL
         Matcher matcher;
 
         // 诸如 https://i2.pixiv.net/img-original/img/2016/10/08/00/51/39/59361141_p0.jpg 的来源
         matcher = Pattern.compile(".+\\.pixiv\\.net.*/(\\d+)").matcher(source);
-        if (matcher.find()){
+        if (matcher.find()) {
             return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
         }
 
         // 诸如 https://i.pximg.net/img-original/img/2017/08/07/01/07/06/64267464_p0.jpg 的来源
         matcher = Pattern.compile(".+\\.pximg\\.net.*/(\\d+)").matcher(source);
-        if (matcher.find()){
+        if (matcher.find()) {
             return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
         }
 
         return source;
     }
 
-    private void initAssociatePanels(){
-        if (presentingPost.getParentId() != null){
+    private void initAssociatePanels() {
+        if (presentingPost.getParentId() != null) {
             int parentId = presentingPost.getParentId();
-            parentLinkLabel.addMouseListener(new MouseAdapter(){
+            parentLinkLabel.addMouseListener(new MouseAdapter() {
 
                 @Override
-                public void mouseClicked(MouseEvent e){
+                public void mouseClicked(MouseEvent e) {
                     moebooruViewer.showPostById(parentId, ShowPostPanel.this);
                 }
             });
-        }else{
+        } else {
             parentPanel.setVisible(false);
         }
 
-        if (presentingPost.isHasChildren()){
-            childrenLinkLabel.addMouseListener(new MouseAdapter(){
+        if (presentingPost.isHasChildren()) {
+            childrenLinkLabel.addMouseListener(new MouseAdapter() {
 
                 @Override
-                public void mouseClicked(MouseEvent e){
+                public void mouseClicked(MouseEvent e) {
                     moebooruViewer.listPosts("parent:" + presentingPost.getId());
                 }
             });
-        }else{
+        } else {
             childrenPanel.setVisible(false);
         }
 
-        if (presentingPost.getPool() != null){
+        if (presentingPost.getPool() != null) {
             poolLinkLabel.setToolTipText(presentingPost.getPool().getName());
-            poolLinkLabel.addMouseListener(new MouseAdapter(){
+            poolLinkLabel.addMouseListener(new MouseAdapter() {
 
                 @Override
-                public void mouseClicked(MouseEvent e){
+                public void mouseClicked(MouseEvent e) {
                     moebooruViewer.listPosts("pool:" + presentingPost.getPool().getId());
                 }
             });
-            poolDownloadLabel.addMouseListener(new MouseAdapter(){
+            poolDownloadLabel.addMouseListener(new MouseAdapter() {
 
                 @Override
-                public void mouseClicked(MouseEvent e){
+                public void mouseClicked(MouseEvent e) {
                     downloadFileTo(poolDownloadLabel, null, mapi.getUrlOfPoolArchive(presentingPost.getPool()));
                 }
             });
-            poolViewOnSiteLabel.addMouseListener(new MouseAdapter(){
+            poolViewOnSiteLabel.addMouseListener(new MouseAdapter() {
 
                 @Override
-                public void mouseClicked(MouseEvent e){
-                    try{
+                public void mouseClicked(MouseEvent e) {
+                    try {
                         Desktop.getDesktop().browse(new URI(mapi.getUrlOfPool(presentingPost.getPool())));
-                    }catch (URISyntaxException | IOException ex){
+                    } catch (URISyntaxException | IOException ex) {
                         logger.info("无法启动浏览器", ex);
                     }
                 }
             });
-        }else{
+        } else {
             poolPanel.setVisible(false);
         }
     }
 
-    private JLabel createDownloadLabel(SaveLocation sl, File localFile, String url){
+    private JLabel createDownloadLabel(SaveLocation sl, File localFile, String url) {
         JLabel label = new JLabel(Localization.format("download_to_format", sl.getName()));
         label.setForeground(Color.WHITE);
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        label.addMouseListener(new MouseAdapter(){
+        label.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isLeftMouseButton(e)){
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
                     downloadFile(label, localFile, url, new File(sl.getLocation(), Utils.getFileNameFromUrl(url)));
                 }
             }
@@ -355,15 +352,15 @@ public class ShowPostPanel extends javax.swing.JPanel{
         return label;
     }
 
-    private JLabel createDownloadToLabel(File localFile, String url){
+    private JLabel createDownloadToLabel(File localFile, String url) {
         JLabel label = new JLabel(Localization.getString("download_to"));
         label.setForeground(Color.WHITE);
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        label.addMouseListener(new MouseAdapter(){
+        label.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isLeftMouseButton(e)){
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
                     downloadFileTo(label, localFile, url);
                 }
             }
@@ -372,23 +369,23 @@ public class ShowPostPanel extends javax.swing.JPanel{
         return label;
     }
 
-    private JLabel createCopyToClipboardLabel(String url){
+    private JLabel createCopyToClipboardLabel(String url) {
         JLabel label = new JLabel(Localization.getString("copy_link_to_clipboard"));
         label.setForeground(Color.WHITE);
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // quick fix for that URLs from konachan.net API does not contain protocol
         final String fixedUrl;
-        if (url.startsWith("//")){
+        if (url.startsWith("//")) {
             fixedUrl = "http:" + url;
-        }else{
+        } else {
             fixedUrl = url;
         }
-        label.addMouseListener(new MouseAdapter(){
+        label.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mouseClicked(MouseEvent e){
-                if (SwingUtilities.isLeftMouseButton(e)){
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
                     getToolkit().getSystemClipboard().setContents(new StringSelection(fixedUrl), null);
                     JOptionPane.showMessageDialog(ShowPostPanel.this, Localization.getString("success"));
                 }
@@ -398,18 +395,18 @@ public class ShowPostPanel extends javax.swing.JPanel{
         return label;
     }
 
-    private void makeLabelDone(JLabel label, File file){
+    private void makeLabelDone(JLabel label, File file) {
         label.setEnabled(true);
         label.setText(Localization.getString("download_completed"));
         label.setForeground(COLOR_SUCCESS);
         Stream.of(label.getMouseListeners())
             .forEach(label::removeMouseListener);
-        label.addMouseListener(new MouseAdapter(){
+        label.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e){
-                try{
+            public void mouseClicked(MouseEvent e) {
+                try {
                     Desktop.getDesktop().browse(file.getParentFile().toURI());
-                }catch (IOException ex){
+                } catch (IOException ex) {
                     logger.warn("打开浏览器出错", ex);
                 }
             }
@@ -425,19 +422,19 @@ public class ShowPostPanel extends javax.swing.JPanel{
      * @param url       The url to download
      * @param saveFile  Where to save downloaded file
      */
-    private void downloadFile(JLabel label, File localFile, String url, File saveFile){
+    private void downloadFile(JLabel label, File localFile, String url, File saveFile) {
         label.setEnabled(false);
-        if (localFile != null && localFile.exists()){
-            try{
+        if (localFile != null && localFile.exists()) {
+            try {
                 FileUtils.copyFile(localFile, saveFile);
                 makeLabelDone(label, saveFile);
-            }catch (IOException ex){
+            } catch (IOException ex) {
                 logger.warn("复制文件异常", ex);
                 label.setText(Localization.getString("failed_to_copy_files"));
                 label.setForeground(COLOR_FAIL);
                 label.setEnabled(true);
             }
-        }else{
+        } else {
             label.setText(Localization.getString("downloading"));
             label.setForeground(Color.WHITE);
             moebooruViewer.downloadFile(saveFile, url, null);
@@ -456,13 +453,13 @@ public class ShowPostPanel extends javax.swing.JPanel{
         }
     }
 
-    private void downloadFileTo(JLabel label, File localFile, String url){
-        if (label.isEnabled()){
-            if (userSetting.getLastSaveDir() != null){
+    private void downloadFileTo(JLabel label, File localFile, String url) {
+        if (label.isEnabled()) {
+            if (userSetting.getLastSaveDir() != null) {
                 fileChooser.setCurrentDirectory(userSetting.getLastSaveDir());
             }
             fileChooser.setSelectedFile(new File(Utils.getFileNameFromUrl(url)));
-            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 userSetting.setLastSaveDir(fileChooser.getCurrentDirectory());
                 downloadFile(label, localFile, url, fileChooser.getSelectedFile());
             }
@@ -656,7 +653,7 @@ public class ShowPostPanel extends javax.swing.JPanel{
     }// </editor-fold>//GEN-END:initComponents
 
     private void copyTagNameMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyTagNameMenuItemActionPerformed
-        if (showingPopupMenuTag != null){
+        if (showingPopupMenuTag != null) {
             getToolkit().getSystemClipboard().setContents(new StringSelection(showingPopupMenuTag.getName()), null);
         }
     }//GEN-LAST:event_copyTagNameMenuItemActionPerformed
@@ -671,9 +668,9 @@ public class ShowPostPanel extends javax.swing.JPanel{
 
     private void viewOnSiteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewOnSiteMenuItemActionPerformed
         String url = userSetting.getSiteConfig().getRootUrl() + "/post/show/" + presentingPost.getId();
-        try{
+        try {
             Desktop.getDesktop().browse(new URI(url));
-        }catch (IOException | URISyntaxException ex){
+        } catch (IOException | URISyntaxException ex) {
             logger.info("无法启动浏览器", ex);
         }
     }//GEN-LAST:event_viewOnSiteMenuItemActionPerformed
@@ -682,40 +679,40 @@ public class ShowPostPanel extends javax.swing.JPanel{
         userSetting.getFavoriteTags().add(showingPopupMenuTag.getName());
     }//GEN-LAST:event_addToFavoriteMenuItemActionPerformed
 
-    public void addLoadingListener(LoadingListener listener){
+    public void addLoadingListener(LoadingListener listener) {
         loadingListeners.add(listener);
     }
 
-    public void removeLoadingListener(LoadingListener listener){
+    public void removeLoadingListener(LoadingListener listener) {
         loadingListeners.remove(listener);
     }
 
-    public Image getImage(){
+    public Image getImage() {
         return image;
     }
 
-    public boolean isNeedResizeImage(){
+    public boolean isNeedResizeImage() {
         return needResizeImage;
     }
 
-    public void showPost(Post post){
+    public void showPost(Post post) {
         presentingPost = post;
         loadPost(post, false);
 
-        postLabel.addMouseListener(new MouseAdapter(){
+        postLabel.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mousePressed(MouseEvent e){
+            public void mousePressed(MouseEvent e) {
                 popupMenu(e);
             }
 
             @Override
-            public void mouseReleased(MouseEvent e){
+            public void mouseReleased(MouseEvent e) {
                 popupMenu(e);
             }
 
-            private void popupMenu(MouseEvent e){
-                if (e.isPopupTrigger()){
+            private void popupMenu(MouseEvent e) {
+                if (e.isPopupTrigger()) {
                     postPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -728,16 +725,16 @@ public class ShowPostPanel extends javax.swing.JPanel{
         initAssociatePanels();
     }
 
-    private void loadPost(Post post, boolean force){
+    private void loadPost(Post post, boolean force) {
         postLabel.setIcon(null);
         String loadingText = Localization.getString("loading");
         postLabel.setText(loadingText);
         loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
         image = null;
 
-        moebooruRepository.loadSampleAsync(post, !force, new DownloadCallbackAdapter(){
+        moebooruRepository.loadSampleAsync(post, !force, new DownloadCallbackAdapter() {
             @Override
-            public void onProgress(double rate){
+            public void onProgress(double rate) {
                 String progressText = String.format("%s %.2f%%", loadingText, rate * 100);
                 SwingUtilities.invokeLater(() -> {
                     postLabel.setText(progressText);
@@ -745,13 +742,13 @@ public class ShowPostPanel extends javax.swing.JPanel{
             }
 
             @Override
-            public void onComplete(File file){
+            public void onComplete(File file) {
                 image = Utils.loadImage(file);
                 SwingUtilities.invokeLater(() -> {
-                    if (presentingPost == post){
-                        if (image != null){
+                    if (presentingPost == post) {
+                        if (image != null) {
                             showImage();
-                        }else{
+                        } else {
                             postLabel.setText(Localization.getString("unable_to_load"));
                         }
                         loadingListeners.forEach(l -> l.done(new LoadingEvent()));
@@ -761,18 +758,18 @@ public class ShowPostPanel extends javax.swing.JPanel{
         });
     }
 
-    private void showImage(){
+    private void showImage() {
         postLabel.setText("");
         resizeImage();
     }
 
-    public void updateImage(){
-        if (image != null){
+    public void updateImage() {
+        if (image != null) {
             resizeImage();
         }
     }
 
-    private void resizeImage(){
+    private void resizeImage() {
         postLabel.setIcon(new ImageIcon(Utils.resizeImage(image, postLabel.getWidth(), postLabel.getHeight())));
         needResizeImage = false;
     }

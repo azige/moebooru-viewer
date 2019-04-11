@@ -1,7 +1,7 @@
 /*
  * Created 2015-11-28 21:51:19
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Azige
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Post{
+public class Post {
 
     private int id;
     @JsonProperty("preview_url")
@@ -33,114 +33,113 @@ public class Post{
     @JsonIgnore
     private Pool pool;
 
-
-    public Post(){
+    public Post() {
     }
 
-    public int getId(){
+    public int getId() {
         return id;
     }
 
-    public void setId(int id){
+    public void setId(int id) {
         this.id = id;
     }
 
-    public String getPreviewUrl(){
+    public String getPreviewUrl() {
         return previewUrl;
     }
 
-    public void setPreviewUrl(String previewUrl){
+    public void setPreviewUrl(String previewUrl) {
         this.previewUrl = previewUrl;
     }
 
-    public String getSampleUrl(){
+    public String getSampleUrl() {
         return sampleUrl;
     }
 
-    public void setSampleUrl(String sampleUrl){
+    public void setSampleUrl(String sampleUrl) {
         this.sampleUrl = sampleUrl;
     }
 
-    public String getTags(){
+    public String getTags() {
         return tags;
     }
 
-    public void setTags(String tags){
+    public void setTags(String tags) {
         this.tags = tags;
     }
 
-    public String getOriginUrl(){
+    public String getOriginUrl() {
         return originUrl;
     }
 
-    public void setOriginUrl(String originUrl){
+    public void setOriginUrl(String originUrl) {
         this.originUrl = originUrl;
     }
 
-    public String getJpegUrl(){
+    public String getJpegUrl() {
         return jpegUrl;
     }
 
-    public void setJpegUrl(String jpegUrl){
+    public void setJpegUrl(String jpegUrl) {
         this.jpegUrl = jpegUrl;
     }
 
-    public String getSource(){
+    public String getSource() {
         return source;
     }
 
-    public void setSource(String source){
+    public void setSource(String source) {
         this.source = source;
     }
 
-    public Integer getParentId(){
+    public Integer getParentId() {
         return parentId;
     }
 
-    public void setParentId(Integer parentId){
+    public void setParentId(Integer parentId) {
         this.parentId = parentId;
     }
 
-    public boolean isHasChildren(){
+    public boolean isHasChildren() {
         return hasChildren;
     }
 
-    public void setHasChildren(boolean hasChildren){
+    public void setHasChildren(boolean hasChildren) {
         this.hasChildren = hasChildren;
     }
 
-    public Pool getPool(){
+    public Pool getPool() {
         return pool;
     }
 
-    public void setPool(Pool pool){
+    public void setPool(Pool pool) {
         this.pool = pool;
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         int hash = 7;
         hash = 47 * hash + this.id;
         return hash;
     }
 
     @Override
-    public boolean equals(Object obj){
-        if (obj == null){
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()){
+        if (getClass() != obj.getClass()) {
             return false;
         }
-        final Post other = (Post)obj;
-        if (this.id != other.id){
+        final Post other = (Post) obj;
+        if (this.id != other.id) {
             return false;
         }
         return true;
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return "Post{" + "id=" + id + ", previewUrl=" + previewUrl + '}';
     }
 }

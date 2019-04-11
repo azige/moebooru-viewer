@@ -3,21 +3,11 @@
  */
 package io.github.azige.moebooruviewer.ui;
 
-import io.github.azige.moebooruviewer.Localization;
-import io.github.azige.moebooruviewer.MoebooruAPI;
-import io.github.azige.moebooruviewer.MoebooruViewer;
-import io.github.azige.moebooruviewer.io.NetIO;
-import io.github.azige.moebooruviewer.Post;
-import io.github.azige.moebooruviewer.SiteConfig;
-import io.github.azige.moebooruviewer.UserSetting;
-import io.github.azige.moebooruviewer.Utils;
-
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -26,7 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -37,8 +26,14 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
+import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.MoebooruAPI;
+import io.github.azige.moebooruviewer.MoebooruViewer;
+import io.github.azige.moebooruviewer.Utils;
+import io.github.azige.moebooruviewer.config.SiteConfig;
+import io.github.azige.moebooruviewer.config.UserSetting;
 import io.github.azige.moebooruviewer.io.MoebooruRepository;
-import org.apache.commons.io.IOUtils;
+import io.github.azige.moebooruviewer.model.Post;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +48,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ListPostFrame extends javax.swing.JFrame{
+public class ListPostFrame extends javax.swing.JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(ListPostFrame.class);
     private static final int PREVIEW_WIDTH = 150;
@@ -88,14 +83,14 @@ public class ListPostFrame extends javax.swing.JFrame{
     /**
      * Creates new form MainFrame
      */
-    public ListPostFrame(){
+    public ListPostFrame() {
         initComponents();
 
         setLocationRelativeTo(null);
-        postsPanel.setLayout(new FlowLayout(){
+        postsPanel.setLayout(new FlowLayout() {
 
             @Override
-            public void layoutContainer(Container target){
+            public void layoutContainer(Container target) {
 
                 int columnCount = target.getSize().width / (PREVIEW_WIDTH + getHgap());
                 int rowCount = posts.size() / columnCount + 1;
@@ -113,11 +108,11 @@ public class ListPostFrame extends javax.swing.JFrame{
         loadMoreLabel.setHorizontalAlignment(JLabel.CENTER);
         loadMoreLabel.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
         loadMoreLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        loadMoreLabel.addMouseListener(new MouseAdapter(){
+        loadMoreLabel.addMouseListener(new MouseAdapter() {
 
             @Override
-            public void mouseClicked(MouseEvent e){
-                if (loadMoreLabel.isEnabled()){
+            public void mouseClicked(MouseEvent e) {
+                if (loadMoreLabel.isEnabled()) {
                     loadImages();
                 }
             }
@@ -128,44 +123,44 @@ public class ListPostFrame extends javax.swing.JFrame{
     }
 
     @PostConstruct
-    private void init(){
+    private void init() {
         setTitle(siteConfig.getName() + " Viewer");
         pageSize = userSetting.getPageSize();
-        try{
+        try {
             setIconImage(siteConfig.getIcon());
-        }catch (IOException ex){
+        } catch (IOException ex) {
             logger.info("无法设置图标", ex);
         }
     }
 
-    public String[] getTags(){
+    public String[] getTags() {
         return tags;
     }
 
-    public void setTags(String[] tags){
+    public void setTags(String[] tags) {
         this.tags = Objects.requireNonNull(tags);
         refreshTitle();
     }
 
     @Override
-    protected void processWindowEvent(WindowEvent e){
+    protected void processWindowEvent(WindowEvent e) {
         super.processWindowEvent(e);
-        if (e.getID() == WindowEvent.WINDOW_CLOSING || e.getID() == WindowEvent.WINDOW_CLOSED){
+        if (e.getID() == WindowEvent.WINDOW_CLOSING || e.getID() == WindowEvent.WINDOW_CLOSED) {
         }
     }
 
-    private void refreshTitle(){
+    private void refreshTitle() {
         StringBuilder sb = new StringBuilder();
         sb.append(siteConfig.getName()).append(" Viewer");
         sb.append(' ').append(Localization.format("page_is", pageCount));
-        if (tags.length > 0){
+        if (tags.length > 0) {
             sb.append(" ").append(Localization.format("tag_is", Stream.of(tags).reduce((a, b) -> a + " " + b).get()));
         }
 
         setTitle(sb.toString());
     }
 
-    public void loadImages(){
+    public void loadImages() {
         loadMoreLabel.setText(Localization.getString("loading"));
         loadMoreLabel.setEnabled(false);
         refreshTitle();
@@ -175,8 +170,8 @@ public class ListPostFrame extends javax.swing.JFrame{
             SwingUtilities.invokeLater(() -> {
                 pageCount++;
                 postsPanel.remove(loadMoreLabel);
-                for (Post post : postList){
-                    if (posts.contains(post)){
+                for (Post post : postList) {
+                    if (posts.contains(post)) {
                         continue;
                     }
                     posts.add(post);
@@ -186,44 +181,44 @@ public class ListPostFrame extends javax.swing.JFrame{
                     label.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
                     label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                     label.setToolTipText(String.valueOf(post.getId()));
-                    if (moebooruRepository.getSampleFile(post).exists()){
+                    if (moebooruRepository.getSampleFile(post).exists()) {
                         label.setBorder(new LineBorder(CACHED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
                     }
 
                     moebooruRepository.loadPreviewAsync(post, image -> {
                         SwingUtilities.invokeLater(() -> {
-                            if (image != null){
+                            if (image != null) {
                                 label.setText("");
                                 Dimension size = label.getPreferredSize();
                                 label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
-                            }else{
+                            } else {
                                 label.setText(Localization.getString("unable_to_load"));
                             }
                         });
                     });
 
-                    label.addMouseListener(new MouseAdapter(){
+                    label.addMouseListener(new MouseAdapter() {
 
                         @Override
-                        public void mouseClicked(MouseEvent e){
-                            if (SwingUtilities.isLeftMouseButton(e)){
+                        public void mouseClicked(MouseEvent e) {
+                            if (SwingUtilities.isLeftMouseButton(e)) {
                                 moebooruViewer.showPost(post);
                                 label.setBorder(new LineBorder(CLICKED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
                             }
                         }
 
                         @Override
-                        public void mousePressed(MouseEvent e){
+                        public void mousePressed(MouseEvent e) {
                             popupMenu(e);
                         }
 
                         @Override
-                        public void mouseReleased(MouseEvent e){
+                        public void mouseReleased(MouseEvent e) {
                             popupMenu(e);
                         }
 
-                        private void popupMenu(MouseEvent e){
-                            if (e.isPopupTrigger()){
+                        private void popupMenu(MouseEvent e) {
+                            if (e.isPopupTrigger()) {
                                 showingPopupMenuLabel = label;
                                 showingPopupMenuPost = post;
                                 postPreviewPopupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -233,17 +228,17 @@ public class ListPostFrame extends javax.swing.JFrame{
                     postsPanel.add(label);
                 }
                 postsPanel.add(loadMoreLabel);
-                if (!postList.isEmpty()){
+                if (!postList.isEmpty()) {
                     loadMoreLabel.setText(Localization.getString("load_more"));
                     loadMoreLabel.setEnabled(true);
-                }else{
+                } else {
                     loadMoreLabel.setText(Localization.getString("no_more_items"));
                 }
             });
         }).start();
     }
 
-    public void clear(){
+    public void clear() {
         posts.clear();
         postsPanel.removeAll();
         postsPanel.add(loadMoreLabel);
@@ -462,7 +457,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void searchTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchTagMenuItemActionPerformed
         String keywords = JOptionPane.showInputDialog(this, Localization.getString("enter_search_tags"),
             Localization.getString("search_by_tag"), JOptionPane.PLAIN_MESSAGE);
-        if (keywords != null){
+        if (keywords != null) {
             moebooruViewer.searchByTags(keywords);
         }
     }//GEN-LAST:event_searchTagMenuItemActionPerformed
@@ -482,7 +477,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void jumpPageMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jumpPageMenuItemActionPerformed
         String pageString = JOptionPane.showInputDialog(this, Localization.getString("enter_page_number"),
             Localization.getString("jump_to_page"), JOptionPane.PLAIN_MESSAGE);
-        if (pageString != null){
+        if (pageString != null) {
             pageCount = Integer.parseInt(pageString);
             clear();
             loadImages();
@@ -506,10 +501,10 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void openPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openPostMenuItemActionPerformed
         String id = JOptionPane.showInputDialog(this, Localization.getString("enter_id"),
             Localization.getString("retrieve_post_by_id"), JOptionPane.PLAIN_MESSAGE);
-        if (id != null){
-            try{
+        if (id != null) {
+            try {
                 moebooruViewer.showPostById(Integer.parseInt(id), this);
-            }catch (NumberFormatException ex){
+            } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, Localization.getString("id_format_is_incorrect"),
                     Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
             }
@@ -523,10 +518,10 @@ public class ListPostFrame extends javax.swing.JFrame{
     }//GEN-LAST:event_configMenuItemActionPerformed
 
     private void cleanCacheMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanCacheMenuItemActionPerformed
-        if (moebooruRepository.cleanCache()){
+        if (moebooruRepository.cleanCache()) {
             JOptionPane.showMessageDialog(this, Localization.getString("successfully_deleted"),
                 Localization.getString("success"), JOptionPane.INFORMATION_MESSAGE);
-        }else{
+        } else {
             JOptionPane.showMessageDialog(this, Localization.getString("failed_to_delete"),
                 Localization.getString("error"), JOptionPane.ERROR_MESSAGE);
         }
@@ -540,11 +535,11 @@ public class ListPostFrame extends javax.swing.JFrame{
         Post post = showingPopupMenuPost;
         moebooruRepository.loadPreviewAsync(post, false, image -> {
             SwingUtilities.invokeLater(() -> {
-                if (image != null){
+                if (image != null) {
                     label.setText("");
                     Dimension size = label.getPreferredSize();
                     label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
-                }else{
+                } else {
                     label.setText(Localization.getString("unable_to_load"));
                 }
             });
@@ -558,7 +553,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void addFavoriteTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFavoriteTagMenuItemActionPerformed
         String tag = JOptionPane.showInputDialog(this, Localization.getString("enter_favorite_tag_add"),
             Localization.getString("favorite_tags"), JOptionPane.PLAIN_MESSAGE);
-        if (tag != null){
+        if (tag != null) {
             userSetting.getFavoriteTags().add(tag);
         }
     }//GEN-LAST:event_addFavoriteTagMenuItemActionPerformed
@@ -566,7 +561,7 @@ public class ListPostFrame extends javax.swing.JFrame{
     private void removeFavoriteTagMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeFavoriteTagMenuItemActionPerformed
         String tag = JOptionPane.showInputDialog(this, Localization.getString("enter_favorite_tag_remove"),
             Localization.getString("favorite_tags"), JOptionPane.PLAIN_MESSAGE);
-        if (tag != null){
+        if (tag != null) {
             userSetting.getFavoriteTags().remove(tag);
         }
     }//GEN-LAST:event_removeFavoriteTagMenuItemActionPerformed

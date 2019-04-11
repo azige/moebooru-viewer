@@ -1,7 +1,9 @@
 /*
  * Created 2015-12-4 1:27:29
  */
-package io.github.azige.moebooruviewer;
+package io.github.azige.moebooruviewer.config;
+
+import io.github.azige.moebooruviewer.Localization;
 
 import java.io.File;
 import java.util.Arrays;
@@ -17,7 +19,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
  *
  * @author Azige
  */
-public class UserSetting{
+public class UserSetting {
 
     private static final int MAX_HISTORY_COUNT = 10;
     private static final int SAVE_LOCATION_ITEMS_COUNT = 4;
@@ -35,37 +37,37 @@ public class UserSetting{
     private List<SaveLocation> saveLocations;
     private int pageSize;
 
-    public static class SaveLocation{
+    public static class SaveLocation {
 
         private String name;
         private File location;
 
-        public SaveLocation(){
+        public SaveLocation() {
         }
 
-        public SaveLocation(String name, File location){
+        public SaveLocation(String name, File location) {
             this.name = name;
             this.location = location;
         }
 
-        public String getName(){
+        public String getName() {
             return name;
         }
 
-        public void setName(String name){
+        public void setName(String name) {
             this.name = name;
         }
 
-        public File getLocation(){
+        public File getLocation() {
             return location;
         }
 
-        public void setLocation(File location){
+        public void setLocation(File location) {
             this.location = location;
         }
     }
 
-    public static UserSetting createDefaultSetting(){
+    public static UserSetting createDefaultSetting() {
         UserSetting setting = new UserSetting();
         setting.saveLocations = Arrays.asList(
             new SaveLocation(Localization.getString("wallpaper"), new File("wallpaper").getAbsoluteFile()),
@@ -78,78 +80,78 @@ public class UserSetting{
         return setting;
     }
 
-    public void verifyAndRepair(){
+    public void verifyAndRepair() {
         UserSetting defaulSetting = createDefaultSetting();
-        if (saveLocations.size() < SAVE_LOCATION_ITEMS_COUNT){
+        if (saveLocations.size() < SAVE_LOCATION_ITEMS_COUNT) {
             saveLocations = defaulSetting.saveLocations;
         }
-        if (siteConfig == null){
+        if (siteConfig == null) {
             siteConfig = defaulSetting.siteConfig;
         }
     }
 
-    public SiteConfig getSiteConfig(){
+    public SiteConfig getSiteConfig() {
         return siteConfig;
     }
 
-    public void setSiteConfig(SiteConfig siteConfig){
+    public void setSiteConfig(SiteConfig siteConfig) {
         this.siteConfig = siteConfig;
     }
 
     @XmlElementWrapper(name = "searchHistories")
     @XmlElement(name = "history")
-    public LinkedList<String> getSearchHistories(){
+    public LinkedList<String> getSearchHistories() {
         return searchHistories;
     }
 
-    public void setSearchHistories(LinkedList<String> searchHistories){
+    public void setSearchHistories(LinkedList<String> searchHistories) {
         this.searchHistories = searchHistories;
     }
 
-    public void addSearchHistory(String keywords){
-        if (keywords.equals("")){
+    public void addSearchHistory(String keywords) {
+        if (keywords.equals("")) {
             return;
         }
-        if (searchHistories.contains(keywords)){
+        if (searchHistories.contains(keywords)) {
             searchHistories.remove(keywords);
         }
         searchHistories.addFirst(keywords);
-        if (searchHistories.size() > MAX_HISTORY_COUNT){
+        if (searchHistories.size() > MAX_HISTORY_COUNT) {
             searchHistories.removeLast();
         }
     }
 
     @XmlElementWrapper(name = "favoriteTags")
     @XmlElement(name = "tag")
-    public LinkedHashSet<String> getFavoriteTags(){
+    public LinkedHashSet<String> getFavoriteTags() {
         return favoriteTags;
     }
 
-    public void setFavoriteTags(LinkedHashSet<String> favoriteTags){
+    public void setFavoriteTags(LinkedHashSet<String> favoriteTags) {
         this.favoriteTags = favoriteTags;
     }
 
-    public File getLastSaveDir(){
+    public File getLastSaveDir() {
         return lastSaveDir;
     }
 
-    public void setLastSaveDir(File lastSaveDir){
+    public void setLastSaveDir(File lastSaveDir) {
         this.lastSaveDir = lastSaveDir;
     }
 
-    public boolean isSafeMode(){
+    public boolean isSafeMode() {
         return safeMode;
     }
 
-    public void setSafeMode(boolean safeMode){
+    public void setSafeMode(boolean safeMode) {
         this.safeMode = safeMode;
     }
 
-    public String getLookAndFeel(){
+    public String getLookAndFeel() {
         return LookAndFeel;
     }
 
-    public void setLookAndFeel(String LookAndFeel){
+    public void setLookAndFeel(String LookAndFeel) {
         this.LookAndFeel = LookAndFeel;
     }
 
@@ -157,19 +159,19 @@ public class UserSetting{
     // TODO: decomment this at v1.0
     //@XmlElementWrapper(name = "saveLocations")
     //@XmlElement(name = "saveLocation")
-    public List<SaveLocation> getSaveLocations(){
+    public List<SaveLocation> getSaveLocations() {
         return saveLocations;
     }
 
-    public void setSaveLocations(List<SaveLocation> saveLocations){
+    public void setSaveLocations(List<SaveLocation> saveLocations) {
         this.saveLocations = saveLocations;
     }
 
-    public int getPageSize(){
+    public int getPageSize() {
         return pageSize;
     }
 
-    public void setPageSize(int pageSize){
+    public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }
 }
