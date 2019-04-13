@@ -41,6 +41,7 @@ import io.github.azige.moebooruviewer.ui.DownloadManagerFrame;
 import io.github.azige.moebooruviewer.ui.DownloadTaskPanel;
 import io.github.azige.moebooruviewer.ui.ListPostFrame;
 import io.github.azige.moebooruviewer.ui.ShowPostFrame;
+import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,9 +162,9 @@ public class MoebooruViewer {
         button.addActionListener(event -> dialog.dispose());
         dialog.setModalityType(ModalityType.MODELESS);
         dialog.setVisible(true);
-        executor.execute(() -> {
-            List<Post> searchPosts = mapi.listPosts(1, 1, "id:" + id);
-            SwingUtilities.invokeLater(() -> {
+        mapi.listPosts(1, 1, "id:" + id)
+            .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+            .subscribe(searchPosts -> {
                 if (dialog.isDisplayable()) {
                     dialog.dispose();
                     if (!searchPosts.isEmpty()) {
@@ -174,7 +175,6 @@ public class MoebooruViewer {
                     }
                 }
             });
-        });
     }
 
     public void switchSite(SiteConfig siteConfig) {

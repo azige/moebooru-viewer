@@ -36,6 +36,7 @@ import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.reactivex.Single;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -78,17 +79,10 @@ public class MoebooruAPITest{
     public void testListPostsWithPool() throws IOException{
         // postV2_pool4094.json comes from https://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094
         String resourceName = "/postV2_pool4094.json";
-        byte[] resourceBytes;
-        {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            try (InputStream input = getClass().getResourceAsStream(resourceName)){
-                IOUtils.copy(input, output);
-            }
-            resourceBytes = output.toByteArray();
-        }
-        when(netIO.download("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094")).thenReturn(resourceBytes);
+        byte[] resourceBytes = IOUtils.resourceToByteArray(resourceName);
+        when(netIO.downloadAsync("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=5&tags=pool:4094")).thenReturn(Single.just(resourceBytes));
 
-        List<Post> posts = mapi.listPosts(1, 5, "pool:4094");
+        List<Post> posts = mapi.listPosts(1, 5, "pool:4094").blockingGet();
         assertThat(posts.size(), is(5));
         assertThat(posts, hasItem(allOf(
             hasProperty("id", is(360242)),
@@ -104,17 +98,10 @@ public class MoebooruAPITest{
     @Test
     public void testListPostsOrder() throws IOException{
         String resourceName = "/postV2_limit100.json";
-        byte[] resourceBytes;
-        {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            try (InputStream input = getClass().getResourceAsStream(resourceName)){
-                IOUtils.copy(input, output);
-            }
-            resourceBytes = output.toByteArray();
-        }
-        when(netIO.download("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=100&tags=")).thenReturn(resourceBytes);
+        byte[] resourceBytes = IOUtils.resourceToByteArray(resourceName);
+        when(netIO.downloadAsync("http://yande.re/post.json?api_version=2&include_pools=1&page=1&limit=100&tags=")).thenReturn(Single.just(resourceBytes));
 
-        List<Post> posts = mapi.listPosts(1, 100);
+        List<Post> posts = mapi.listPosts(1, 100).blockingGet();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode postNode = mapper.readTree(getClass().getResourceAsStream(resourceName)).get("posts");
 

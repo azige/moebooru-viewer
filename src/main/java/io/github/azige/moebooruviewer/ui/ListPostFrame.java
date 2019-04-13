@@ -13,7 +13,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -34,6 +33,7 @@ import io.github.azige.moebooruviewer.config.SiteConfig;
 import io.github.azige.moebooruviewer.config.UserSetting;
 import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import io.github.azige.moebooruviewer.model.Post;
+import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,10 +164,9 @@ public class ListPostFrame extends javax.swing.JFrame {
         loadMoreLabel.setText(Localization.getString("loading"));
         loadMoreLabel.setEnabled(false);
         refreshTitle();
-        // TODO: 使用更好的线程管理
-        new Thread(() -> {
-            List<Post> postList = mapi.listPosts(pageCount, pageSize, tags);
-            SwingUtilities.invokeLater(() -> {
+        mapi.listPosts(pageCount, pageSize, tags)
+            .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+            .subscribe(postList -> {
                 pageCount++;
                 postsPanel.remove(loadMoreLabel);
                 for (Post post : postList) {
@@ -235,7 +234,6 @@ public class ListPostFrame extends javax.swing.JFrame {
                     loadMoreLabel.setText(Localization.getString("no_more_items"));
                 }
             });
-        }).start();
     }
 
     public void clear() {

@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -45,6 +46,8 @@ import io.github.azige.moebooruviewer.io.EmptyDownloadCallback;
 import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import io.github.azige.moebooruviewer.model.Post;
 import io.github.azige.moebooruviewer.model.Tag;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,43 +131,43 @@ public class ShowPostPanel extends javax.swing.JPanel {
 
     private void initTagPanel() {
         final int lineLimit = 25;
-        // TODO: 使用更好的线程管理
-        new Thread(() -> {
-            List<Tag> tags = new ArrayList<>();
-            List<String> resolveFailedTagNames = new ArrayList<>();
-            for (String tagName : presentingPost.getTags().split(" ")) {
-                Tag tag = mapi.findTag(tagName);
-                if (tag != null) {
-                    tags.add(tag);
-                } else {
-                    resolveFailedTagNames.add(tagName);
-                }
-            }
-            Map<Integer, List<Tag>> typeToTagsMap = tags.stream()
-                .collect(Collectors.groupingBy(Tag::getType));
+        final List<Integer> tagTypeOrders = Arrays.asList(Tag.TYPE_ARTIST, Tag.TYPE_COPYRIGHT, Tag.TYPE_CHARACTER, Tag.TYPE_GENERAL);
 
-            List<Tag> sortedTags = new ArrayList<>();
-            for (int type : new int[]{Tag.TYPE_ARTIST, Tag.TYPE_COPYRIGHT, Tag.TYPE_CHARACTER, Tag.TYPE_GENERAL}) {
-                if (typeToTagsMap.containsKey(type)) {
-                    sortedTags.addAll(typeToTagsMap.get(type));
-                    typeToTagsMap.remove(type);
+//        List<String> resolveFailedTagNames = new ArrayList<>();
+        Flowable.fromArray(presentingPost.getTags().split(" "))
+            .subscribeOn(Schedulers.io())
+            .flatMap(tagName -> mapi.findTag(tagName).toFlowable())
+            .sorted((a, b) -> {
+                int va = tagTypeOrders.indexOf(a.getType());
+                if (va == -1) {
+                    va = Integer.MAX_VALUE;
                 }
-            }
-            typeToTagsMap.values().forEach(sortedTags::addAll);
-
-            SwingUtilities.invokeLater(() -> {
+                int vb = tagTypeOrders.indexOf(b.getType());
+                if (vb == -1) {
+                    vb = Integer.MAX_VALUE;
+                }
+                return va - vb;
+            })
+            .toList()
+            .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+            .subscribe(sortedTags -> {
                 tagPanel.removeAll();
                 sortedTags.forEach(tag -> {
                     String tagName = tag.getName();
                     String viewTagName = tagName.replaceAll("_", " ");
                     if (viewTagName.length() > lineLimit) {
                         StringBuilder targetBuilder = new StringBuilder("<html>");
-                        StringBuilder sourceBuffer = new StringBuilder(viewTagName);
-                        while (sourceBuffer.length() > lineLimit) {
-                            targetBuilder.append(sourceBuffer, 0, lineLimit).append("<br/>");
-                            sourceBuffer.delete(0, lineLimit);
+                        int count = 0;
+                        while (true) {
+                            targetBuilder.append(viewTagName, count, Math.min(count + lineLimit, viewTagName.length()));
+                            if (count + lineLimit < viewTagName.length()) {
+                                targetBuilder.append("<br/>");
+                                count += lineLimit;
+                            } else {
+                                break;
+                            }
                         }
-                        targetBuilder.append(sourceBuffer).append("</html>");
+                        targetBuilder.append("</html>");
                         viewTagName = targetBuilder.toString();
                     }
 
@@ -205,7 +208,6 @@ public class ShowPostPanel extends javax.swing.JPanel {
                     tagPanel.add(label);
                 });
             });
-        }).start();
     }
 
     private void initToolPanel() {

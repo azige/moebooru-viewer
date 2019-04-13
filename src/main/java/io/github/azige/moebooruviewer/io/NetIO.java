@@ -4,7 +4,6 @@
 package io.github.azige.moebooruviewer.io;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,6 +20,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import com.google.common.net.HttpHeaders;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,26 +86,27 @@ public class NetIO implements InitializingBean, DisposableBean {
         }
     }
 
-    public byte[] download(String url) {
-        for (int retryCount = 0; retryCount < maxRetryCount; retryCount++) {
-            try {
-                ClientHttpRequest request = createRequest(url);
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                try (ClientHttpResponse response = request.execute()) {
-                    responseWeakMap.put(response, null);
-                    InputStream input = response.getBody();
-                    IOUtils.copy(input, output);
-                }
-                return output.toByteArray();
-            } catch (IOException ex) {
-                if (ex instanceof SocketException && closed) {
-                    return null;
-                }
-                logger.info("IO异常，重试", ex);
+    public Single<byte[]> downloadAsync(String url) {
+        return Single.fromCallable(() -> {
+            ClientHttpRequest request = createRequest(url);
+            try (ClientHttpResponse response = request.execute()) {
+                responseWeakMap.put(response, null);
+                return IOUtils.toByteArray(response.getBody());
             }
-        }
-        logger.info("到达最大重试次数，已放弃重试");
-        return null;
+        })
+            .subscribeOn(Schedulers.io())
+            .retry((count, ex) -> {
+                if (ex instanceof SocketException && closed) {
+                    return false;
+                }
+                if (count < maxRetryCount) {
+                    logger.info("IO异常，重试", ex);
+                    return true;
+                } else {
+                    logger.info("到达最大重试次数，已放弃重试");
+                    return false;
+                }
+            });
     }
 
     public Future<?> downloadFileAsync(String url, File fileToSave, DownloadCallback callback) {
