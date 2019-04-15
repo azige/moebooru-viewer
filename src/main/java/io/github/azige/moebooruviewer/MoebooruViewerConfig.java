@@ -17,8 +17,6 @@
 package io.github.azige.moebooruviewer;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXB;
 
@@ -31,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 
 /**
  *
@@ -60,8 +59,19 @@ public class MoebooruViewerConfig {
     }
 
     @Bean
-    public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(MoebooruViewerConstants.DEFAULT_THREAD_POOL_SIZE);
+    public ThreadPoolExecutorFactoryBean generalDownloadExecutor() {
+        ThreadPoolExecutorFactoryBean factory = new ThreadPoolExecutorFactoryBean();
+        factory.setCorePoolSize(MoebooruViewerConstants.DEFAULT_THREAD_POOL_SIZE);
+        factory.setMaxPoolSize(MoebooruViewerConstants.DEFAULT_THREAD_POOL_SIZE);
+        return factory;
+    }
+
+    @Bean
+    public ThreadPoolExecutorFactoryBean imageFileDownloadExecutor() {
+        ThreadPoolExecutorFactoryBean factory = new ThreadPoolExecutorFactoryBean();
+        factory.setCorePoolSize(MoebooruViewerConstants.DEFAULT_THREAD_POOL_SIZE);
+        factory.setMaxPoolSize(MoebooruViewerConstants.DEFAULT_THREAD_POOL_SIZE);
+        return factory;
     }
 
     @Bean

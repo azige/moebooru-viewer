@@ -184,8 +184,9 @@ public class ListPostFrame extends javax.swing.JFrame {
                         label.setBorder(new LineBorder(CACHED_POST_BORDER_COLOR, PREVIEW_BORDER_THICKNESS));
                     }
 
-                    moebooruRepository.loadPreviewAsync(post, image -> {
-                        SwingUtilities.invokeLater(() -> {
+                    moebooruRepository.loadPreviewAsync(post)
+                        .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                        .subscribe(image -> {
                             if (image != null) {
                                 label.setText("");
                                 Dimension size = label.getPreferredSize();
@@ -194,7 +195,6 @@ public class ListPostFrame extends javax.swing.JFrame {
                                 label.setText(Localization.getString("unable_to_load"));
                             }
                         });
-                    });
 
                     label.addMouseListener(new MouseAdapter() {
 
@@ -531,8 +531,9 @@ public class ListPostFrame extends javax.swing.JFrame {
 
         JLabel label = showingPopupMenuLabel;
         Post post = showingPopupMenuPost;
-        moebooruRepository.loadPreviewAsync(post, false, image -> {
-            SwingUtilities.invokeLater(() -> {
+        moebooruRepository.loadPreviewAsync(post, false)
+            .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+            .subscribe(image -> {
                 if (image != null) {
                     label.setText("");
                     Dimension size = label.getPreferredSize();
@@ -541,7 +542,6 @@ public class ListPostFrame extends javax.swing.JFrame {
                     label.setText(Localization.getString("unable_to_load"));
                 }
             });
-        });
     }//GEN-LAST:event_reloadMenuItemActionPerformed
 
     private void showDownloadManagerMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showDownloadManagerMenuItemActionPerformed

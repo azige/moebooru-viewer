@@ -17,9 +17,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.function.DoubleConsumer;
 
 import com.google.common.net.HttpHeaders;
+import io.reactivex.Completable;
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import org.apache.commons.io.IOUtils;
@@ -44,7 +46,9 @@ public class NetIO implements InitializingBean, DisposableBean {
     private static final Logger logger = LoggerFactory.getLogger(NetIO.class);
 
     @Autowired
-    private ExecutorService executorService;
+    private ExecutorService generalDownloadExecutor;
+    @Autowired
+    private ExecutorService imageFileDownloadExecutor;
     @Autowired
     private ClientHttpRequestFactory requestFactory;
 
@@ -52,12 +56,16 @@ public class NetIO implements InitializingBean, DisposableBean {
     private boolean forceHttps = true;
     private boolean closed = false;
     private final Map<ClientHttpResponse, Void> responseWeakMap = Collections.synchronizedMap(new WeakHashMap<>());
+    private Scheduler generalDownloadScheduler;
+    private Scheduler imageFileDownloadScheduler;
 
     public NetIO() {
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        generalDownloadScheduler = Schedulers.from(generalDownloadExecutor);
+        imageFileDownloadScheduler = Schedulers.from(imageFileDownloadExecutor);
     }
 
     @Override
@@ -94,7 +102,7 @@ public class NetIO implements InitializingBean, DisposableBean {
                 return IOUtils.toByteArray(response.getBody());
             }
         })
-            .subscribeOn(Schedulers.io())
+            .subscribeOn(generalDownloadScheduler)
             .retry((count, ex) -> {
                 if (ex instanceof SocketException && closed) {
                     return false;
@@ -109,17 +117,12 @@ public class NetIO implements InitializingBean, DisposableBean {
             });
     }
 
-    public Future<?> downloadFileAsync(String url, File fileToSave, DownloadCallback callback) {
+    public Completable downloadFileAsync(String url, File fileToSave, DoubleConsumer progressHandler) {
         Objects.requireNonNull(url);
         Objects.requireNonNull(fileToSave);
-        DownloadCallback cb;
-        if (callback == null) {
-            cb = new EmptyDownloadCallback();
-        } else {
-            cb = callback;
-        }
+        Objects.requireNonNull(progressHandler);
 
-        return executorService.submit(() -> {
+        return Completable.create(emitter -> {
             long totalContentCount = -1;
             long downloadedCount = 0;
             double currentRate = 0;
@@ -154,18 +157,21 @@ public class NetIO implements InitializingBean, DisposableBean {
                         try (InputStream input = new BufferedInputStream(response.getBody(), bufferSize); OutputStream output = new FileOutputStream(fileToSave, true)) {
                             int readCount;
                             while ((readCount = input.read(buffer)) != -1) {
+                                if (emitter.isDisposed()) {
+                                    return;
+                                }
                                 output.write(buffer, 0, readCount);
                                 downloadedCount += readCount;
                                 double rate = (double) downloadedCount / totalContentCount;
                                 if (rate - currentRate > 0.01) {
                                     currentRate = rate;
-                                    cb.onProgress(rate);
+                                    progressHandler.accept(rate);
                                 }
                             }
                         }
                     }
                     logger.info("downloaded: {} to {}", url, fileToSave);
-                    cb.onComplete(fileToSave);
+                    emitter.onComplete();
                     return;
                 } catch (IOException ex) {
                     logger.info("IO异常", ex);
@@ -178,7 +184,9 @@ public class NetIO implements InitializingBean, DisposableBean {
                 }
             }
             logger.info("到达最大重试次数，已放弃重试");
-            cb.onFail(lastException);
-        });
+            assert lastException != null;
+            emitter.onError(lastException);
+        })
+            .subscribeOn(imageFileDownloadScheduler);
     }
 }

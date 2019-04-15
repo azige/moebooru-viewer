@@ -15,13 +15,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -44,6 +40,8 @@ import io.github.azige.moebooruviewer.ui.ShowPostFrame;
 import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -54,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-public class MoebooruViewer {
+public class MoebooruViewer implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(MoebooruViewer.class);
 
@@ -62,8 +60,6 @@ public class MoebooruViewer {
     private AnnotationConfigApplicationContext context;
     @Autowired
     private SiteConfig siteConfig;
-    @Autowired
-    private ExecutorService executor;
     @Autowired
     private MoebooruAPI mapi;
     @Autowired
@@ -81,8 +77,8 @@ public class MoebooruViewer {
     public MoebooruViewer() {
     }
 
-    @PostConstruct
-    private void init() {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         logger.info("init");
 
         {
@@ -119,6 +115,20 @@ public class MoebooruViewer {
                 logger.warn("无法读取tag记录文件", ex);
             }
         }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        logger.info("destroy");
+        listPostFrames.forEach(ListPostFrame::dispose);
+        ObjectMapper mapper = new ObjectMapper();
+        File tagFile = new File(siteConfig.getName(), MoebooruViewerConstants.TAG_FILE_NAME);
+        try {
+            mapper.writeValue(tagFile, mapi.getTagMap());
+        } catch (IOException ex) {
+            logger.warn("无法读取tag记录文件", ex);
+        }
+        JAXB.marshal(userSetting, new File(MoebooruViewerConstants.SETTING_FILE_NAME));
     }
 
     public void searchByTags(String tags) {
@@ -206,32 +216,15 @@ public class MoebooruViewer {
             downloadFrame.setVisible(true);
         }
 
-        netIO.downloadFileAsync(url, localFile, taskPanel);
+        // TODO: Refactor again
+        netIO.downloadFileAsync(url, localFile, taskPanel::onProgress)
+            .doOnComplete(() -> taskPanel.onComplete(localFile))
+            .doOnError(taskPanel::onFail)
+            .subscribe();
     }
 
     public void exit() {
         context.close();
-    }
-
-    @PreDestroy
-    private void destroy() {
-        logger.info("destroy");
-        listPostFrames.forEach(ListPostFrame::dispose);
-        executor.shutdownNow();
-        new Thread(() -> {
-            try {
-                executor.awaitTermination(300, TimeUnit.SECONDS);
-            } catch (InterruptedException ex) {
-            }
-            ObjectMapper mapper = new ObjectMapper();
-            File tagFile = new File(siteConfig.getName(), MoebooruViewerConstants.TAG_FILE_NAME);
-            try {
-                mapper.writeValue(tagFile, mapi.getTagMap());
-            } catch (IOException ex) {
-                logger.warn("无法读取tag记录文件", ex);
-            }
-            JAXB.marshal(userSetting, new File(MoebooruViewerConstants.SETTING_FILE_NAME));
-        }).start();
     }
 
     private static ApplicationContext buildContext() {
@@ -260,6 +253,7 @@ public class MoebooruViewer {
         ApplicationContext context = buildContext();
         SwingUtilities.invokeLater(() -> {
             context.getBean(MoebooruViewer.class).listPosts();
+            System.out.println(UIManager.getLookAndFeel().getName());
         });
     }
 }

@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.ImageIcon;
@@ -42,7 +41,6 @@ import io.github.azige.moebooruviewer.MoebooruViewer;
 import io.github.azige.moebooruviewer.Utils;
 import io.github.azige.moebooruviewer.config.UserSetting;
 import io.github.azige.moebooruviewer.config.UserSetting.SaveLocation;
-import io.github.azige.moebooruviewer.io.EmptyDownloadCallback;
 import io.github.azige.moebooruviewer.io.MoebooruRepository;
 import io.github.azige.moebooruviewer.model.Post;
 import io.github.azige.moebooruviewer.model.Tag;
@@ -136,7 +134,7 @@ public class ShowPostPanel extends javax.swing.JPanel {
 //        List<String> resolveFailedTagNames = new ArrayList<>();
         Flowable.fromArray(presentingPost.getTags().split(" "))
             .subscribeOn(Schedulers.io())
-            .flatMap(tagName -> mapi.findTag(tagName).toFlowable())
+            .flatMap(tagName -> mapi.findTag(tagName).onErrorComplete().toFlowable())
             .sorted((a, b) -> {
                 int va = tagTypeOrders.indexOf(a.getType());
                 if (va == -1) {
@@ -734,30 +732,20 @@ public class ShowPostPanel extends javax.swing.JPanel {
         loadingListeners.forEach(l -> l.loading(new LoadingEvent()));
         image = null;
 
-        moebooruRepository.loadSampleAsync(post, !force, new EmptyDownloadCallback() {
-            @Override
-            public void onProgress(double rate) {
-                String progressText = String.format("%s %.2f%%", loadingText, rate * 100);
-                SwingUtilities.invokeLater(() -> {
-                    postLabel.setText(progressText);
-                });
-            }
-
-            @Override
-            public void onComplete(File file) {
-                image = Utils.loadImage(file);
-                SwingUtilities.invokeLater(() -> {
-                    if (presentingPost == post) {
-                        if (image != null) {
-                            showImage();
-                        } else {
-                            postLabel.setText(Localization.getString("unable_to_load"));
-                        }
-                        loadingListeners.forEach(l -> l.done(new LoadingEvent()));
-                    }
-                });
-            }
-        });
+        moebooruRepository.loadSampleAsync(post, !force, progress -> {
+            String progressText = String.format("%s %.2f%%", loadingText, progress * 100);
+            SwingUtilities.invokeLater(() -> {
+                postLabel.setText(progressText);
+            });
+        })
+            .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+            .doOnSuccess(img -> {
+                this.image = img;
+                showImage();
+            })
+            .doOnError(ex -> postLabel.setText(Localization.getString("unable_to_load")))
+            .doAfterTerminate(() -> loadingListeners.forEach(l -> l.done(new LoadingEvent())))
+            .subscribe();
     }
 
     private void showImage() {

@@ -21,11 +21,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 import io.github.azige.moebooruviewer.Utils;
 import io.github.azige.moebooruviewer.config.SiteConfig;
 import io.github.azige.moebooruviewer.model.Post;
+import io.reactivex.Single;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,34 +74,34 @@ public class MoebooruRepository implements InitializingBean {
         return new File(previewDir, post.getId() + ".jpg");
     }
 
-    public void loadPreviewAsync(Post post, Consumer<Image> callback) {
-        loadPreviewAsync(post, true, callback);
+    public Single<Image> loadPreviewAsync(Post post) {
+        return loadPreviewAsync(post, true);
     }
 
-    public void loadPreviewAsync(Post post, boolean useCache, Consumer<Image> callback) {
+    public Single<Image> loadPreviewAsync(Post post, boolean useCache) {
         long id = post.getId();
         File previewFile = new File(previewDir, id + ".jpg");
-        loadImageAsync(post.getPreviewUrl(), previewFile, useCache, callback);
+        return loadImageAsync(post.getPreviewUrl(), previewFile, useCache);
     }
 
     public File getSampleFile(Post post) {
         return new File(sampleDir, post.getId() + ".jpg");
     }
 
-    public void loadSampleAsync(Post post, Consumer<Image> callback) {
-        loadSampleAsync(post, true, callback);
+    public Single<Image> loadSampleAsync(Post post) {
+        return loadSampleAsync(post, true);
     }
 
-    public void loadSampleAsync(Post post, boolean useCache, Consumer<Image> callback) {
+    public Single<Image> loadSampleAsync(Post post, boolean useCache) {
         long id = post.getId();
         File sampleFile = getSampleFile(post);
-        loadImageAsync(post.getSampleUrl(), sampleFile, useCache, callback);
+        return loadImageAsync(post.getSampleUrl(), sampleFile, useCache);
     }
 
-    public void loadSampleAsync(Post post, boolean useCache, DownloadCallback callback) {
+    public Single<Image> loadSampleAsync(Post post, boolean useCache, DoubleConsumer progressHandler) {
         long id = post.getId();
         File sampleFile = getSampleFile(post);
-        loadImageAsync(post.getSampleUrl(), sampleFile, useCache, callback);
+        return loadImageAsync(post.getSampleUrl(), sampleFile, useCache, progressHandler);
     }
 
     public File getOriginFile(Post post) {
@@ -114,33 +115,22 @@ public class MoebooruRepository implements InitializingBean {
 
     /**
      * Load a image asynchronously.
-     * The callback will be invoked with loaded image when succeeded
-     * or null when failed.
      *
      * @param url
      * @param localFile
      * @param useCache
-     * @param callback
      */
-    public void loadImageAsync(String url, File localFile, boolean useCache, Consumer<Image> callback) {
-        loadImageAsync(url, localFile, useCache, new EmptyDownloadCallback() {
-            @Override
-            public void onComplete(File file) {
-                callback.accept(Utils.loadImage(file));
-            }
-
-            @Override
-            public void onFail(Exception ex) {
-                callback.accept(null);
-            }
-        });
+    public Single<Image> loadImageAsync(String url, File localFile, boolean useCache) {
+        return loadImageAsync(url, localFile, useCache, it -> {});
     }
 
-    public void loadImageAsync(String url, File localFile, boolean useCache, DownloadCallback callback) {
+    public Single<Image> loadImageAsync(String url, File localFile, boolean useCache, DoubleConsumer progressHandler) {
+        Single<Image> loadingSingle = Single.fromCallable(() -> Utils.loadImage(localFile));
         if (!useCache || !localFile.exists()) {
-            netIO.downloadFileAsync(url, localFile, callback);
+            return netIO.downloadFileAsync(url, localFile, progressHandler)
+                .andThen(loadingSingle);
         } else {
-            callback.onComplete(localFile);
+            return loadingSingle;
         }
     }
 

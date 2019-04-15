@@ -16,19 +16,15 @@
  */
 package io.github.azige.moebooruviewer.ui;
 
-import io.github.azige.moebooruviewer.Localization;
-
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 
 import javax.swing.SwingUtilities;
 
-import io.github.azige.moebooruviewer.io.DownloadCallback;
+import io.github.azige.moebooruviewer.Localization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -39,12 +35,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadCallback{
+public class DownloadTaskPanel extends javax.swing.JPanel {
 
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTaskPanel.class);
-
-    @Autowired
-    private ExecutorService executor;
 
     File downloadFile;
 
@@ -187,7 +180,6 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadCal
     private javax.swing.JLabel taskNameLabel;
     // End of variables declaration//GEN-END:variables
 
-    @Override
     public void onProgress(double rate){
         int percent = (int)(rate * 100);
         String text = "" + percent + "%"; //NOI18N
@@ -197,7 +189,6 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadCal
         });
     }
 
-    @Override
     public void onComplete(File file){
         SwingUtilities.invokeLater(() -> {
             progressBar.setValue(100);
@@ -207,8 +198,7 @@ public class DownloadTaskPanel extends javax.swing.JPanel implements DownloadCal
         });
     }
 
-    @Override
-    public void onFail(Exception ex){
+    public void onFail(Throwable ex){
         SwingUtilities.invokeLater(() -> {
             progressLabel.setText(Localization.getString("failed"));
             retryButton.setEnabled(true);
