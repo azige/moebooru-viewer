@@ -23,8 +23,11 @@ import java.io.IOException;
 import javax.swing.SwingUtilities;
 
 import io.github.azige.moebooruviewer.Localization;
+import io.github.azige.moebooruviewer.io.NetIO;
+import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -39,12 +42,16 @@ public class DownloadTaskPanel extends javax.swing.JPanel {
 
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTaskPanel.class);
 
-    File downloadFile;
+    @Autowired
+    private NetIO netIO;
+
+    private String url;
+    private File downloadFile;
 
     /**
      * Creates new form DownloadTaskPanel
      */
-    public DownloadTaskPanel(){
+    public DownloadTaskPanel() {
         initComponents();
     }
 
@@ -70,7 +77,7 @@ public class DownloadTaskPanel extends javax.swing.JPanel {
         taskNameLabel.setText("file name"); // NOI18N
         taskNameLabel.setMaximumSize(new java.awt.Dimension(100, 15));
 
-        progressLabel.setText("null");
+        progressLabel.setText("0%");
         progressLabel.setToolTipText("null");
         progressLabel.setPreferredSize(new java.awt.Dimension(50, 15));
 
@@ -136,39 +143,55 @@ public class DownloadTaskPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
-        try{
+        try {
             Desktop.getDesktop().open(downloadFile);
-        }catch (IOException ex){
+        } catch (IOException ex) {
             LOG.info("IO异常", ex); //NOI18N
         }
     }//GEN-LAST:event_openButtonActionPerformed
 
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
-        try{
+        try {
             Desktop.getDesktop().browse(downloadFile.getParentFile().toURI());
-        }catch (IOException ex){
+        } catch (IOException ex) {
             LOG.info("IO异常", ex); //NOI18N
         }
     }//GEN-LAST:event_browseButtonActionPerformed
 
     private void retryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_retryButtonActionPerformed
-        throw new UnsupportedOperationException();
-//        retryButton.setEnabled(false);
-//        executor.execute(task);
+        retryButton.setEnabled(false);
+        start();
     }//GEN-LAST:event_retryButtonActionPerformed
 
-    public void setTaskName(String fileName){
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setDownloadFile(File downloadFile) {
+        this.downloadFile = downloadFile;
+
+        String fileName = downloadFile.getName();
         final int textLengthLimit = 40;
-        if (fileName.length() > textLengthLimit){
+        if (fileName.length() > textLengthLimit) {
             taskNameLabel.setText(fileName.substring(0, textLengthLimit) + "..."); //NOI18N
-        }else{
+        } else {
             taskNameLabel.setText(fileName);
         }
         taskNameLabel.setToolTipText(fileName);
     }
 
-    public void setDownloadFile(File downloadFile){
-        this.downloadFile = downloadFile;
+    public File getDownloadFile() {
+        return downloadFile;
+    }
+
+    public void start() {
+        netIO.downloadFileAsync(url, downloadFile, this::onProgress)
+            .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+            .subscribe(this::onComplete, this::onFail);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -180,8 +203,8 @@ public class DownloadTaskPanel extends javax.swing.JPanel {
     private javax.swing.JLabel taskNameLabel;
     // End of variables declaration//GEN-END:variables
 
-    public void onProgress(double rate){
-        int percent = (int)(rate * 100);
+    public void onProgress(double rate) {
+        int percent = (int) (rate * 100);
         String text = "" + percent + "%"; //NOI18N
         SwingUtilities.invokeLater(() -> {
             progressBar.setValue(percent);
@@ -189,19 +212,15 @@ public class DownloadTaskPanel extends javax.swing.JPanel {
         });
     }
 
-    public void onComplete(File file){
-        SwingUtilities.invokeLater(() -> {
-            progressBar.setValue(100);
-            progressLabel.setText(Localization.getString("done"));
-            openButton.setEnabled(true);
-            browseButton.setEnabled(true);
-        });
+    public void onComplete() {
+        progressBar.setValue(100);
+        progressLabel.setText(Localization.getString("done"));
+        openButton.setEnabled(true);
+        browseButton.setEnabled(true);
     }
 
-    public void onFail(Throwable ex){
-        SwingUtilities.invokeLater(() -> {
-            progressLabel.setText(Localization.getString("failed"));
-            retryButton.setEnabled(true);
-        });
+    public void onFail(Throwable ex) {
+        progressLabel.setText(Localization.getString("failed"));
+        retryButton.setEnabled(true);
     }
 }

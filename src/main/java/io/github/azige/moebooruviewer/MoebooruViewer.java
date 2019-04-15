@@ -207,20 +207,11 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
         if (taskName == null) {
             taskName = localFile.getName();
         }
-        DownloadTaskPanel taskPanel = context.getBean(DownloadTaskPanel.class);
-        taskPanel.setTaskName(taskName);
-        taskPanel.setDownloadFile(localFile);
-        downloadFrame.addTaskPanel(taskPanel);
+        downloadFrame.addDownloadTask(url, localFile);
 
         if (!downloadFrame.isVisible()) {
             downloadFrame.setVisible(true);
         }
-
-        // TODO: Refactor again
-        netIO.downloadFileAsync(url, localFile, taskPanel::onProgress)
-            .doOnComplete(() -> taskPanel.onComplete(localFile))
-            .doOnError(taskPanel::onFail)
-            .subscribe();
     }
 
     public void exit() {

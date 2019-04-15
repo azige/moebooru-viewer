@@ -16,13 +16,12 @@
  */
 package io.github.azige.moebooruviewer.ui;
 
+import java.io.File;
+
 import io.github.azige.moebooruviewer.Localization;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.PreDestroy;
-
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,7 +29,10 @@ import org.springframework.stereotype.Component;
  * @author Azige
  */
 @Component
-public class DownloadManagerFrame extends javax.swing.JFrame{
+public class DownloadManagerFrame extends javax.swing.JFrame implements DisposableBean {
+
+    @Autowired
+    private ObjectFactory<DownloadTaskPanel> downloadTaskPanelFactory;
 
     /**
      * Creates new form DownloadFrame
@@ -42,8 +44,8 @@ public class DownloadManagerFrame extends javax.swing.JFrame{
         setLocationRelativeTo(null);
     }
 
-    @PreDestroy
-    private void destroy(){
+    @Override
+    public void destroy() throws Exception {
         dispose();
     }
 
@@ -86,9 +88,13 @@ public class DownloadManagerFrame extends javax.swing.JFrame{
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void addTaskPanel(DownloadTaskPanel panel){
-        taskContainerPanel.add(panel);
+    public void addDownloadTask(String url, File downloadFile) {
+        DownloadTaskPanel taskPanel = downloadTaskPanelFactory.getObject();
+        taskPanel.setUrl(url);
+        taskPanel.setDownloadFile(downloadFile);
+        taskContainerPanel.add(taskPanel);
         taskContainerPanel.revalidate();
+        taskPanel.start();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
