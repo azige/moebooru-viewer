@@ -77,6 +77,7 @@ public class ConfigDialog extends javax.swing.JDialog implements InitializingBea
         pageSizeTextField.setText(String.valueOf(userSetting.getPageSize()));
 
         updateProxyEnableState(userSetting.isProxyEnabled());
+        proxyEnableCheckBox.setSelected(userSetting.isProxyEnabled());
 
         ProxyConfig proxyConfig = userSetting.getProxyConfig();
         if (proxyConfig != null) {
