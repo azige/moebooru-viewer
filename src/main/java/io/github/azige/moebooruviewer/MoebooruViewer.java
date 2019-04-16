@@ -23,7 +23,6 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.bind.JAXB;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +33,6 @@ import io.github.azige.moebooruviewer.io.NetIO;
 import io.github.azige.moebooruviewer.model.Post;
 import io.github.azige.moebooruviewer.model.Tag;
 import io.github.azige.moebooruviewer.ui.DownloadManagerFrame;
-import io.github.azige.moebooruviewer.ui.DownloadTaskPanel;
 import io.github.azige.moebooruviewer.ui.ListPostFrame;
 import io.github.azige.moebooruviewer.ui.ShowPostFrame;
 import io.reactivex.schedulers.Schedulers;
@@ -80,26 +78,6 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         logger.info("init");
-
-        {
-            boolean success = false;
-            if (userSetting.getLookAndFeel() != null) {
-                try {
-                    UIManager.setLookAndFeel(userSetting.getLookAndFeel());
-                    success = true;
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-                    logger.warn("设置 L&F 时出错", ex);
-                }
-            }
-            if (!success) {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    userSetting.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-                    logger.warn("设置系统默认 L&F 时出错", ex);
-                }
-            }
-        }
 
         File tagFile = new File(siteConfig.getName(), MoebooruViewerConstants.TAG_FILE_NAME);
         if (tagFile.exists()) {

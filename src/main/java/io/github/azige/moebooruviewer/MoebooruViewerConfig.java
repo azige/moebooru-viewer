@@ -18,6 +18,8 @@ package io.github.azige.moebooruviewer;
 
 import java.io.File;
 
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.bind.JAXB;
 
 import io.github.azige.moebooruviewer.config.SiteConfig;
@@ -55,6 +57,26 @@ public class MoebooruViewerConfig {
         }
         if (userSetting == null) {
             userSetting = UserSetting.createDefaultSetting();
+        }
+
+        {
+            boolean success = false;
+            if (userSetting.getLookAndFeel() != null) {
+                try {
+                    UIManager.setLookAndFeel(userSetting.getLookAndFeel());
+                    success = true;
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+                    LOG.warn("设置 L&F 时出错", ex);
+                }
+            }
+            if (!success) {
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    userSetting.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+                    LOG.warn("设置系统默认 L&F 时出错", ex);
+                }
+            }
         }
     }
 
