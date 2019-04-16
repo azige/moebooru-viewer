@@ -15,10 +15,15 @@ import javax.swing.filechooser.FileSystemView;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  *
  * @author Azige
  */
+// TODO: Convert to JSON-friendly form and r/w in JSON
 public class UserSetting {
 
     private static final int MAX_HISTORY_COUNT = 10;
@@ -36,6 +41,12 @@ public class UserSetting {
     private String LookAndFeel;
     private List<SaveLocation> saveLocations;
     private int pageSize;
+    @Getter
+    @Setter
+    private boolean proxyEnabled;
+    @Getter
+    @Setter
+    private ProxyConfig proxyConfig;
 
     public static class SaveLocation {
 
@@ -65,6 +76,13 @@ public class UserSetting {
         public void setLocation(File location) {
             this.location = location;
         }
+    }
+
+    @Data
+    public static class ProxyConfig {
+
+        private String host = "127.0.0.1";
+        private int port = 1080;
     }
 
     public static UserSetting createDefaultSetting() {

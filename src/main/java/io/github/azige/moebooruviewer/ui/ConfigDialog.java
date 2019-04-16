@@ -11,8 +11,6 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
@@ -20,10 +18,14 @@ import javax.swing.UIManager;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import io.github.azige.moebooruviewer.Utils;
 import io.github.azige.moebooruviewer.config.UserSetting;
+import io.github.azige.moebooruviewer.config.UserSetting.ProxyConfig;
 import io.github.azige.moebooruviewer.config.UserSetting.SaveLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,7 +37,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ConfigDialog extends javax.swing.JDialog {
+public class ConfigDialog extends javax.swing.JDialog implements InitializingBean, DisposableBean {
 
     private Logger logger = LoggerFactory.getLogger(ConfigDialog.class);
     private final ResourceBundle messages = ResourceBundle.getBundle("io/github/azige/moebooruviewer/Settings");
@@ -61,8 +63,8 @@ public class ConfigDialog extends javax.swing.JDialog {
         fileChooser.setApproveButtonText(messages.getString("select"));
     }
 
-    @PostConstruct
-    private void init() {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         lafNameToClassNameMap = Stream.of(UIManager.getInstalledLookAndFeels())
             .collect(Collectors.toMap(info -> info.getName(), info -> info.getClassName(), (a, b) -> a, HashBiMap::create));
         safeModeCheckBox.setSelected(userSetting.isSafeMode());
@@ -73,6 +75,19 @@ public class ConfigDialog extends javax.swing.JDialog {
             savePaths.get(i).setText(userSetting.getSaveLocations().get(i).getLocation().toString());
         }
         pageSizeTextField.setText(String.valueOf(userSetting.getPageSize()));
+
+        updateProxyEnableState(userSetting.isProxyEnabled());
+
+        ProxyConfig proxyConfig = userSetting.getProxyConfig();
+        if (proxyConfig != null) {
+            proxyHostTextField.setText(proxyConfig.getHost());
+            proxyPortTextField.setText(String.valueOf(proxyConfig.getPort()));
+        }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        dispose();
     }
 
     /**
@@ -85,6 +100,9 @@ public class ConfigDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel8 = new javax.swing.JLabel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel9 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         safeModeCheckBox = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
@@ -112,8 +130,6 @@ public class ConfigDialog extends javax.swing.JDialog {
         jLabel12 = new javax.swing.JLabel();
         savePathTextField3 = new javax.swing.JTextField();
         choosePathButton3 = new javax.swing.JButton();
-        confirmButton = new javax.swing.JButton();
-        cancelButton = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         lafComboBox = new javax.swing.JComboBox();
         jLabel5 = new javax.swing.JLabel();
@@ -121,6 +137,17 @@ public class ConfigDialog extends javax.swing.JDialog {
         jLabel6 = new javax.swing.JLabel();
         pageSizeTextField = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
+        jPanel10 = new javax.swing.JPanel();
+        proxyEnableCheckBox = new javax.swing.JCheckBox();
+        proxyConfigPanel = new javax.swing.JPanel();
+        jLabel13 = new javax.swing.JLabel();
+        proxyHostTextField = new javax.swing.JTextField();
+        jLabel14 = new javax.swing.JLabel();
+        proxyPortTextField = new javax.swing.JTextField();
+        confirmButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
+
+        jLabel8.setText("jLabel8");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(messages.getString("settings")); // NOI18N
@@ -181,7 +208,7 @@ public class ConfigDialog extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel2)
                 .addGap(18, 18, 18)
-                .addComponent(savePathTextField1)
+                .addComponent(savePathTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(choosePathButton1)
                 .addContainerGap())
@@ -228,7 +255,7 @@ public class ConfigDialog extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addGap(18, 18, 18)
-                .addComponent(savePathTextField2)
+                .addComponent(savePathTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(choosePathButton2)
                 .addContainerGap())
@@ -275,7 +302,7 @@ public class ConfigDialog extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel10)
                 .addGap(18, 18, 18)
-                .addComponent(savePathTextField4)
+                .addComponent(savePathTextField4, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(choosePathButton4)
                 .addContainerGap())
@@ -322,7 +349,7 @@ public class ConfigDialog extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel12)
                 .addGap(18, 18, 18)
-                .addComponent(savePathTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
+                .addComponent(savePathTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(choosePathButton3)
                 .addContainerGap())
@@ -365,20 +392,6 @@ public class ConfigDialog extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-
-        confirmButton.setText(messages.getString("confirm")); // NOI18N
-        confirmButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                confirmButtonActionPerformed(evt);
-            }
-        });
-
-        cancelButton.setText(messages.getString("cancel")); // NOI18N
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
-            }
-        });
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("look_and_feel"))); // NOI18N
 
@@ -443,37 +456,145 @@ public class ConfigDialog extends javax.swing.JDialog {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
+        jPanel9.setLayout(jPanel9Layout);
+        jPanel9Layout.setHorizontalGroup(
+            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 655, Short.MAX_VALUE)
+            .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel9Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addContainerGap()))
+        );
+        jPanel9Layout.setVerticalGroup(
+            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 412, Short.MAX_VALUE)
+            .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel9Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(jPanel9Layout.createSequentialGroup()
+                            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+
+        jTabbedPane1.addTab("常规", jPanel9);
+
+        proxyEnableCheckBox.setText("启用代理");
+        proxyEnableCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                proxyEnableCheckBoxActionPerformed(evt);
+            }
+        });
+
+        proxyConfigPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("代理服务器设置"));
+
+        jLabel13.setText("主机");
+
+        proxyHostTextField.setText("127.0.0.1");
+
+        jLabel14.setText("端口");
+
+        proxyPortTextField.setText("1080");
+
+        javax.swing.GroupLayout proxyConfigPanelLayout = new javax.swing.GroupLayout(proxyConfigPanel);
+        proxyConfigPanel.setLayout(proxyConfigPanelLayout);
+        proxyConfigPanelLayout.setHorizontalGroup(
+            proxyConfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(proxyConfigPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(proxyConfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel13)
+                    .addComponent(jLabel14))
+                .addGap(18, 18, 18)
+                .addGroup(proxyConfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(proxyPortTextField)
+                    .addComponent(proxyHostTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 561, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        proxyConfigPanelLayout.setVerticalGroup(
+            proxyConfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(proxyConfigPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(proxyConfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13)
+                    .addComponent(proxyHostTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(proxyConfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(proxyPortTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(289, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
+        jPanel10.setLayout(jPanel10Layout);
+        jPanel10Layout.setHorizontalGroup(
+            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(proxyConfigPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel10Layout.createSequentialGroup()
+                        .addComponent(proxyEnableCheckBox)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel10Layout.setVerticalGroup(
+            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(proxyEnableCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(proxyConfigPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("代理", jPanel10);
+
+        confirmButton.setText(messages.getString("confirm")); // NOI18N
+        confirmButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                confirmButtonActionPerformed(evt);
+            }
+        });
+
+        cancelButton.setText(messages.getString("cancel")); // NOI18N
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(confirmButton)
-                        .addGap(18, 18, 18)
-                        .addComponent(cancelButton)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                .addComponent(confirmButton)
+                .addGap(18, 18, 18)
+                .addComponent(cancelButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(confirmButton)
@@ -483,12 +604,6 @@ public class ConfigDialog extends javax.swing.JDialog {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    @PreDestroy
-    @Override
-    public void dispose() {
-        super.dispose();
-    }
 
     private void choosePath(JTextField pathField) {
         File current = new File(pathField.getText()).getAbsoluteFile();
@@ -515,6 +630,22 @@ public class ConfigDialog extends javax.swing.JDialog {
         } catch (NumberFormatException ex) {
             logger.debug("数字格式错误", ex);
         }
+
+        userSetting.setProxyEnabled(proxyEnableCheckBox.isSelected());
+        ProxyConfig proxyConfig = userSetting.getProxyConfig();
+        if (proxyConfig == null) {
+            proxyConfig = new ProxyConfig();
+            userSetting.setProxyConfig(proxyConfig);
+        }
+        proxyConfig.setHost(proxyHostTextField.getText());
+        proxyConfig.setPort(Integer.parseInt(proxyPortTextField.getText()));
+
+        Utils.configProxy(userSetting);
+    }
+
+    private void updateProxyEnableState(boolean enabled) {
+        proxyConfigPanel.setEnabled(enabled);
+        Arrays.stream(proxyConfigPanel.getComponents()).forEach(it -> it.setEnabled(enabled));
     }
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
@@ -542,6 +673,10 @@ public class ConfigDialog extends javax.swing.JDialog {
         choosePath(savePathTextField4);
     }//GEN-LAST:event_choosePathButton4ActionPerformed
 
+    private void proxyEnableCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyEnableCheckBoxActionPerformed
+        updateProxyEnableState(proxyEnableCheckBox.isSelected());
+    }//GEN-LAST:event_proxyEnableCheckBoxActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JButton choosePathButton1;
@@ -553,14 +688,18 @@ public class ConfigDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -568,8 +707,14 @@ public class ConfigDialog extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JComboBox lafComboBox;
     private javax.swing.JTextField pageSizeTextField;
+    private javax.swing.JPanel proxyConfigPanel;
+    private javax.swing.JCheckBox proxyEnableCheckBox;
+    private javax.swing.JTextField proxyHostTextField;
+    private javax.swing.JTextField proxyPortTextField;
     private javax.swing.JCheckBox safeModeCheckBox;
     private javax.swing.JTextField saveNameTextField1;
     private javax.swing.JTextField saveNameTextField2;

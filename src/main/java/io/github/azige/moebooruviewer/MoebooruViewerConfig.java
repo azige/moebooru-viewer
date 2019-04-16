@@ -78,6 +78,8 @@ public class MoebooruViewerConfig {
                 }
             }
         }
+
+        Utils.configProxy(userSetting);
     }
 
     @Bean
