@@ -187,13 +187,11 @@ public class ListPostFrame extends javax.swing.JFrame {
                     moebooruRepository.loadPreviewAsync(post)
                         .observeOn(Schedulers.from(SwingUtilities::invokeLater))
                         .subscribe(image -> {
-                            if (image != null) {
-                                label.setText("");
-                                Dimension size = label.getPreferredSize();
-                                label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
-                            } else {
-                                label.setText(Localization.getString("unable_to_load"));
-                            }
+                            label.setText("");
+                            Dimension size = label.getPreferredSize();
+                            label.setIcon(new ImageIcon(Utils.resizeImage(image, size.getWidth(), size.getHeight())));
+                        }, ex -> {
+                            label.setText(Localization.getString("unable_to_load"));
                         });
 
                     label.addMouseListener(new MouseAdapter() {
@@ -233,6 +231,9 @@ public class ListPostFrame extends javax.swing.JFrame {
                 } else {
                     loadMoreLabel.setText(Localization.getString("no_more_items"));
                 }
+            }, ex -> {
+                loadMoreLabel.setText("加载失败！");
+                loadMoreLabel.setEnabled(true);
             });
     }
 

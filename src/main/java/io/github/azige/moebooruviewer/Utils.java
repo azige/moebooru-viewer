@@ -87,7 +87,7 @@ public class Utils {
 
                 @Override
                 public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-                    logger.error("连接代理服务器出错，uri={}, address={}, ex={}", uri, sa, ioe);
+                    logger.error("连接代理服务器出错，uri={}, address={}", uri, sa, ioe);
                 }
             });
         } else {
