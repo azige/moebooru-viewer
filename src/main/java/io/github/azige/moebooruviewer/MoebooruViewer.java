@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -131,7 +132,7 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
             public void windowClosing(WindowEvent e) {
                 listPostFrames.remove((ListPostFrame) e.getWindow());
                 if (listPostFrames.isEmpty()) {
-                    context.close();
+                    exit();
                 }
             }
 
@@ -168,10 +169,10 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
     public void switchSite(SiteConfig siteConfig) {
         userSetting.setSiteConfig(siteConfig);
 
-        context.close();
-
-        ApplicationContext context = buildContext();
-        context.getBean(MoebooruViewer.class).listPosts();
+        exit().thenAccept(it -> {
+            ApplicationContext context = buildContext();
+            context.getBean(MoebooruViewer.class).listPosts();
+        });
     }
 
     /**
@@ -192,8 +193,9 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
         }
     }
 
-    public void exit() {
-        context.close();
+    public CompletableFuture<Void> exit() {
+        // Avoid destroy sequence blocking AWT thread
+        return CompletableFuture.runAsync(context::close);
     }
 
     private static ApplicationContext buildContext() {
@@ -222,7 +224,6 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
         ApplicationContext context = buildContext();
         SwingUtilities.invokeLater(() -> {
             context.getBean(MoebooruViewer.class).listPosts();
-            System.out.println(UIManager.getLookAndFeel().getName());
         });
     }
 }
