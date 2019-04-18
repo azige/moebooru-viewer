@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -169,7 +170,7 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
     public void switchSite(SiteConfig siteConfig) {
         userSetting.setSiteConfig(siteConfig);
 
-        exit().thenAccept(it -> {
+        exit().thenRun(() -> {
             ApplicationContext context = buildContext();
             context.getBean(MoebooruViewer.class).listPosts();
         });
@@ -193,7 +194,7 @@ public class MoebooruViewer implements InitializingBean, DisposableBean {
         }
     }
 
-    public CompletableFuture<Void> exit() {
+    public CompletionStage<Void> exit() {
         // Avoid destroy sequence blocking AWT thread
         return CompletableFuture.runAsync(context::close);
     }
