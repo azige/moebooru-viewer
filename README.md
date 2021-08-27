@@ -6,6 +6,10 @@
 
 [中文点这里](https://github.com/azige/moebooru-viewer/blob/master/README_cn.md)
 
+## !!!Abandoned!!!!
+
+This project has been abandoned. It was a personal study for many libraries and it has been filled up with chaos. If you would like to enjoy moebooru sites, just browse the web pages.
+
 ## Introduction
 
 A [Moebooru](https://github.com/moebooru/moebooru) client on Java. It's able to access resources on moebooru sites such as Konachan.com and yande.re.
