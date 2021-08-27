@@ -265,13 +265,13 @@ public class ShowPostPanel extends javax.swing.JPanel {
         // 诸如 https://i2.pixiv.net/img-original/img/2016/10/08/00/51/39/59361141_p0.jpg 的来源
         matcher = Pattern.compile(".+\\.pixiv\\.net.*/(\\d+)").matcher(source);
         if (matcher.find()) {
-            return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
+            return "http://www.pixiv.net/artworks/" + matcher.group(1);
         }
 
         // 诸如 https://i.pximg.net/img-original/img/2017/08/07/01/07/06/64267464_p0.jpg 的来源
         matcher = Pattern.compile(".+\\.pximg\\.net.*/(\\d+)").matcher(source);
         if (matcher.find()) {
-            return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + matcher.group(1);
+            return "http://www.pixiv.net/artworks/" + matcher.group(1);
         }
 
         return source;
